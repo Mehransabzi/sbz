@@ -14,3 +14,6 @@ __pycache__/
 coverage/
 .DS_Store
 *.log
+# Legacy cPanel release artifacts left in the live application directory.
+/RELEASE_INFO.json
+/?passenger_wsgi.py
