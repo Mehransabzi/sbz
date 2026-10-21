@@ -102,6 +102,7 @@ CHORTKE_PRICE_DIVISOR = float(os.getenv("CHORTKE_PRICE_DIVISOR", "1"))
 CHORTKE_PAGE_SIZE = max(1, min(int(os.getenv("CHORTKE_PAGE_SIZE", "100")), 500))
 
 GAPGPT_API_BASE_URL = "https://api.gapgpt.app/v1"
+GAPGPT_PROXY_URL = os.getenv("GAPGPT_PROXY_URL", "").strip()
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "shopsite-ai-cache", "TIMEOUT": 600}}
 
 

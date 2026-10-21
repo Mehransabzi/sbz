@@ -1,8 +1,8 @@
 import hashlib
 import math
-import requests
 from django.conf import settings
 from django.core.cache import cache
+from store.ai.client import post_gapgpt
 from store.controlpanel.models import SiteConfiguration
 
 
@@ -13,7 +13,7 @@ def vectors(texts, *, query=False):
     payload = {"model": settings.SEARCH_EMBEDDING_MODEL, "input": texts}
     if "text-embedding-3" in settings.SEARCH_EMBEDDING_MODEL:
         payload["dimensions"] = settings.SEARCH_EMBEDDING_DIMENSIONS
-    response = requests.post(settings.GAPGPT_API_BASE_URL + "/embeddings", headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json=payload, timeout=(8, 15) if query else (8, 45))
+    response = post_gapgpt("/embeddings", headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json=payload, timeout=(8, 15) if query else (8, 45))
     response.raise_for_status()
     rows = sorted(response.json().get("data", []), key=lambda row: row["index"])
     if len(rows) != len(texts):

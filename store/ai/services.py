@@ -4,9 +4,8 @@ import json
 import re
 from difflib import SequenceMatcher
 
-import requests
-from django.conf import settings
 from django.core.cache import cache
+from .client import post_gapgpt
 from django.db.models import Q
 
 from django.contrib.auth import get_user_model
@@ -190,7 +189,7 @@ def ask_gapgpt(*, config, messages, user=None, admin_mode=False, admin_reference
     if not api_key:
         raise RuntimeError("کلید API گپ‌جی‌پی‌تی در تنظیمات پنل ثبت نشده است.")
     payload = {"model": config.ai_model, "messages": [{"role": "system", "content": policy}, *normalized], "temperature": 0.3}
-    response = requests.post(settings.GAPGPT_API_BASE_URL + "/chat/completions", headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"}, json=payload, timeout=(8, 50))
+    response = post_gapgpt("/chat/completions", headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"}, json=payload, timeout=(8, 50))
     if response.status_code in (401, 403):
         raise RuntimeError("کلید API رد شد؛ اعتبار کلید را بررسی کنید.")
     response.raise_for_status()
@@ -219,7 +218,7 @@ def extract_invoice_items(config, image_bytes, mime_type):
         'فقط JSON معتبر با ساختار {"items":[{"name":"نام خوانده‌شده","quantity":1}]} برگردان. تعداد نامشخص را 1 بگذار؛ اگر قلمی نیست items خالی باشد.'
     )
     payload = {"model": "gpt-6-luna", "messages": [{"role": "user", "content": [{"type": "text", "text": instruction}, {"type": "image_url", "image_url": {"url": image_url}}]}], "temperature": 0}
-    response = requests.post(settings.GAPGPT_API_BASE_URL + "/chat/completions", headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"}, json=payload, timeout=(8, 60))
+    response = post_gapgpt("/chat/completions", headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"}, json=payload, timeout=(8, 60))
     if response.status_code in (401, 403):
         raise RuntimeError("کلید API رد شد؛ اعتبار کلید را بررسی کنید.")
     response.raise_for_status()
