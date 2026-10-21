@@ -1,0 +1,38 @@
+{% extends 'storefront/base.html' %}
+{% load static %}
+{% block title %}لوازم یدکی سبزی | پخش عمده قطعات خودرو{% endblock %}
+{% block content %}
+<section class="landing-hero">
+  <div class="wrap landing-layout">
+    <div class="landing-copy" data-reveal>
+      <span class="eyebrow"><span class="status-dot"></span> فروش عمده قطعات خودرو · شوشتر</span>
+      <img class="landing-logo" src="{% static 'storefront/media/brand-logo.png' %}" alt="لوگوی فروشگاه سبزی">
+      <h1>قطعهٔ درست،<br><span>خرید مطمئن و آسان</span></h1>
+      <p>به فروشگاه اینترنتی لوازم یدکی سبزی خوش آمدید. قطعات موردنیازتان را در کاتالوگ پیدا کنید؛ قیمت‌های همکاری پس از تأیید حساب شما نمایش داده می‌شوند.</p>
+      <div class="hero-actions">
+        <a class="button button-primary button-large" href="{% url 'storefront:catalog' %}"><span aria-hidden="true">▦</span> ورود به کاتالوگ</a>
+        {% if not can_view_prices %}{% if user.is_authenticated %}<span class="approval-note"><span aria-hidden="true">◷</span> حساب شما در انتظار تأیید فروشگاه است</span>{% else %}<a class="button button-outline button-large" href="{% url 'accounts:register' %}"><span aria-hidden="true">✦</span> درخواست حساب عمده</a>{% endif %}{% endif %}
+      </div>
+      <div class="hero-points"><span>تنوع قطعات خودرو</span><span>دسته‌بندی به‌روز</span><span>ارسال از شوشتر</span></div>
+    </div>
+
+    <aside class="home-category-sidebar" data-reveal>
+      <div class="sidebar-heading"><span class="sidebar-icon" aria-hidden="true">☷</span><div><strong>دسته‌بندی کالاها</strong><small>انتخاب گروه برای دیدن محصولات</small></div></div>
+      <nav aria-label="دسته‌بندی محصولات">
+        {% for value, label in categories %}
+          <a class="category-side-link" href="{% url 'storefront:catalog' %}?category={{ value|urlencode }}"><span class="category-side-symbol" aria-hidden="true">◇</span><span>{{ label }}</span><span class="category-arrow" aria-hidden="true">←</span></a>
+        {% empty %}
+          <p class="muted">دسته‌بندی‌ها پس از همگام‌سازی محصولات اینجا نمایش داده می‌شوند.</p>
+        {% endfor %}
+      </nav>
+      <a class="sidebar-all-link" href="{% url 'storefront:catalog' %}">مشاهده همه گروه‌ها <span aria-hidden="true">←</span></a>
+    </aside>
+  </div>
+</section>
+
+<section class="wrap intro-section" data-reveal>
+  <div class="intro-copy"><span class="eyebrow">آشنایی با فروشگاه</span><h2>همراه مطمئن قطعه‌فروشان</h2><p>ویدیوی معرفی فروشگاه را ببینید و برای استعلام قیمت عمده، پس از ساخت حساب و تأیید فروشگاه وارد کاتالوگ شوید.</p><a class="text-link" href="{% url 'storefront:catalog' %}">رفتن به کاتالوگ <span aria-hidden="true">←</span></a></div>
+  <div class="intro-video-frame"><video controls playsinline preload="metadata" poster="{% static 'storefront/media/brand-logo.png' %}" aria-label="ویدیوی معرفی فروشگاه لوازم یدکی سبزی"><source src="{% if site_config and site_config.intro_video %}{{ site_config.intro_video.url }}{% else %}{% static 'storefront/media/store-intro.mp4' %}{% endif %}">مرورگر شما از پخش ویدیو پشتیبانی نمی‌کند.</video><span class="video-caption"><span aria-hidden="true">▶</span> ویدیوی معرفی فروشگاه</span></div>
+</section>
+{% include 'storefront/partials/contact.html' %}
+{% endblock %}

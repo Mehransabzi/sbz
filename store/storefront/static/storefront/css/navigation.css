@@ -1,0 +1,41 @@
+/* Floating glass navigation. Opaque fallback remains legible without backdrop-filter. */
+.site-header { position: sticky; top: 14px; z-index: 50; width: min(1320px, calc(100% - 32px)); margin: 14px auto 22px; border: 1px solid #e0f2ff55; border-radius: 28px; background: linear-gradient(120deg, #d3edff26, #9ccbe614), #142c40eb; box-shadow: inset 0 1px 0 #ffffff66, inset 0 -1px 0 #a0bddb20, 0 16px 48px #020b1838; }
+.header-inner.wrap { width: 100%; padding: 12px 18px; gap: 14px; }
+.main-nav { justify-content: center; gap: 5px; }
+.main-nav .nav-item { position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 66px; padding: 9px 10px; border: 1px solid transparent; border-radius: 19px; background: transparent; color: #e1f1ff; font-size: 12px; font-weight: 650; transition: background .2s, border-color .2s, transform .2s, box-shadow .2s; }
+.main-nav .nav-item:hover, .main-nav .nav-item[aria-current] { color: #fff; background: linear-gradient(140deg, #e8f8ff30, #b7dbff12); border-color: #e0f3ff40; box-shadow: inset 0 1px 0 #ffffff40, 0 5px 14px #06152522; }
+.main-nav .nav-item:hover { transform: translateY(-2px); }
+.nav-glyph { width: 29px; height: 29px; background: transparent; color: #c3e7ff; }
+.nav-glyph svg { width: 24px; height: 24px; stroke-width: 1.65; }
+.main-nav .nav-item[aria-current] .nav-glyph { color: #e4fd97; }
+.nav-cart-item .cart-count { position: absolute; top: 2px; inset-inline-end: 5px; margin: 0; min-width: 19px; height: 19px; font-size: 10px; background: #e4fd97; color: #022e21; }
+.profile-pill { transform: none; background: linear-gradient(130deg, #d7efff2e, #a0bddb14); color: #ecf7ff; border-color: #cbeaff4d; box-shadow: inset 0 1px 0 #ffffff38, 0 7px 18px #0002; }
+.profile-pill small { color: #b9d7eb; }
+.profile-pill-icon { background: #d1ebff24; color: #d5f0ff; }
+.header-actions .button-quiet { background: #cceaff12; border-color: #cceaff38; }
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: linear-gradient(120deg, #d3edff2b, #9ccbe611), #10223785; backdrop-filter: blur(26px) saturate(165%); -webkit-backdrop-filter: blur(26px) saturate(165%); }
+}
+@media (min-width: 761px) and (max-width: 1200px) {
+  .main-nav { order: 3; width: 100%; padding-top: 5px; border-top: 1px solid #d0ecff1f; }
+  .main-nav .nav-item { flex: 1; flex-direction: row; min-height: 48px; gap: 9px; }
+}
+@media (max-width: 760px) {
+  .site-header { position: static; width: calc(100% - 24px); margin: 12px auto 18px; border-radius: 22px; background: linear-gradient(120deg, #24455bcc, #142b3dcc); backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .header-inner.wrap { padding: 12px; gap: 12px; }
+  .main-nav, .main-nav.open { position: fixed; top: auto; bottom: calc(12px + env(safe-area-inset-bottom)); inset-inline: 12px; width: auto; max-width: 540px; margin-inline: auto; padding: 7px; gap: 2px; border: 1px solid #e0f2ff66; border-radius: 26px; background: linear-gradient(125deg, #d3edff30, #9ccbe618), #122b40f0; box-shadow: inset 0 1px 0 #ffffff66, inset 0 -1px 0 #a0bddb26, 0 12px 35px #0005; }
+  .main-nav .nav-item { flex-direction: column; min-width: 0; min-height: 58px; padding: 5px 2px; gap: 4px; border: 1px solid transparent; border-radius: 19px; color: #ecf6ff; font-size: 10px; background: transparent; }
+  .main-nav .nav-item:hover { transform: none; background: #c6e7ff22; }
+  .nav-glyph { width: 27px; height: 27px; }
+  .nav-glyph svg { width: 23px; height: 23px; }
+  .nav-cart-item .cart-count { top: -1px; inset-inline-end: 0; margin: 0; }
+  .floating-cart { bottom: calc(101px + env(safe-area-inset-bottom)); }
+  .ai-launch { bottom: calc(177px + env(safe-area-inset-bottom)); }
+  .ai-panel { bottom: calc(237px + env(safe-area-inset-bottom)); }
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .main-nav, .main-nav.open { background: linear-gradient(125deg, #d3edff30, #9ccbe610), #10223799; backdrop-filter: blur(28px) saturate(180%); -webkit-backdrop-filter: blur(28px) saturate(180%); }
+  }
+}
+
+/* A fixed mobile bar lives outside the glass header, avoiding nested backdrop compositing. */
+[data-mobile-navigation]{display:contents}.site-header{isolation:isolate;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%)}.main-nav .nav-item:hover{transform:none}.header-inner.wrap{min-width:0}.header-actions{min-width:0}.profile-pill{max-width:170px}.profile-pill>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}@media(min-width:1201px){.header-inner.wrap{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px}.brand strong{max-width:200px;overflow:hidden;text-overflow:ellipsis}.main-nav{width:100%;min-width:0;gap:3px}.main-nav .nav-item{min-width:56px;padding-inline:7px}.header-actions{gap:6px}.header-actions .button{padding-inline:10px;font-size:12px}}@media(min-width:761px) and (max-width:1200px){.header-inner.wrap{display:grid;grid-template-columns:minmax(0,1fr) auto}.main-nav{grid-column:1/-1;grid-row:2}.header-actions{grid-column:2;grid-row:1}}@media(max-width:760px){.site-header{top:auto;backdrop-filter:none;-webkit-backdrop-filter:none;filter:none;transform:none;isolation:auto}.main-nav,.main-nav.open{z-index:70;transition:background .2s,border-color .2s;backdrop-filter:blur(16px) saturate(140%);-webkit-backdrop-filter:blur(16px) saturate(140%);transform:none}.profile-pill{max-width:180px}}

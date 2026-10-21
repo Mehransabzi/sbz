@@ -1,0 +1,6 @@
+{% extends 'storefront/base.html' %}
+{% load persian_numbers %}
+{% block title %}درخواست سفارش ثبت شد | لوازم یدکی سبزی{% endblock %}
+{% block content %}
+<section class="wrap success-page" data-order-confirmed><div class="success-card"><span class="success-mark" aria-hidden="true">✓</span><span class="eyebrow">درخواست شما دریافت شد</span><h1>شماره پیگیری {{ order.order_number }}</h1><p>فروشگاه پس از بررسی موجودی و هزینه ارسال با شما تماس می‌گیرد. تا پیش از تأیید فروشگاه، این درخواست فاکتور یا پرداخت نهایی محسوب نمی‌شود.</p><div class="success-total"><span>جمع تقریبی کالاها</span><strong>{{ order.total|floatformat:0|fa_num }} ریال</strong></div><a class="button button-primary" href="{% url 'storefront:home' %}">بازگشت به فروشگاه</a></div></section>
+{% endblock %}

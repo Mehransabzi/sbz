@@ -1,0 +1,16 @@
+.venv/
+.idea/
+.env*
+!.env.example
+db.sqlite3
+.migration_backup/
+release/
+staticfiles/
+media/
+tmp/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+coverage/
+.DS_Store
+*.log

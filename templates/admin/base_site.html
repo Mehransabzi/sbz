@@ -1,0 +1,11 @@
+{% extends "admin/base.html" %}
+{% load static %}
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" href="{% static 'storefront/css/admin.css' %}">{% endblock %}
+{% block branding %}
+  <div id="site-name" class="admin-branding">
+    <img src="{% static 'storefront/media/brand-logo.png' %}" alt="لوگوی فروشگاه سبزی">
+    <a href="{% url 'admin:index' %}">پنل مدیریت فروشگاه سبزی</a>
+  </div>
+{% endblock %}
+
+{% block extrahead %}{{ block.super }}{% include "includes/favicon.html" %}{% endblock %}

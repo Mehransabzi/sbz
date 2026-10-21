@@ -1,0 +1,20 @@
+{% extends 'storefront/base.html' %}
+{% load persian_numbers %}
+{% block title %}{{ product.name }} | لوازم یدکی سبزی{% endblock %}
+{% block content %}
+<section class="wrap detail-page">
+  <nav class="breadcrumbs"><a href="{% url 'storefront:home' %}">خانه</a><span>/</span><a href="{% url 'storefront:home' %}#catalog">کاتالوگ</a><span>/</span><span>{{ product.name }}</span></nav>
+  <article class="detail-card">
+    <div class="detail-photo">{% if product.display_image_url %}<img src="{{ product.display_image_url }}" alt="{{ product.name }}" fetchpriority="high">{% else %}<span class="photo-placeholder" aria-hidden="true">⚙</span>{% endif %}</div>
+    <div class="detail-info">
+      <span class="eyebrow">{{ product.category_label }}</span>
+      <h1>{{ product.name }}</h1>
+      <p class="product-code">کد کالا: {{ product.chortke_code }}{% if product.barcode %} · بارکد: {{ product.barcode }}{% endif %}</p>
+      {% if product.display_description %}<p class="detail-description">{{ product.display_description|linebreaksbr }}</p>{% endif %}
+<dl class="spec-list"><div><dt>واحد فروش</dt><dd>{{ product.unit|default:"عدد" }}</dd></div></dl>
+      <div class="detail-buy">{% if can_view_prices %}<strong class="price">{{ product.sale_price|floatformat:0|fa_num }} <small>ریال</small></strong><button class="button button-primary button-large js-add-to-cart" type="button" data-image="{{ product.display_image_url }}" data-code="{{ product.chortke_code }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}" data-unit="{{ product.unit|default:'عدد' }}">افزودن به سبد خرید</button>{% else %}<div class="price-access-inline"><strong>قیمت همکاری</strong><span>پس از تأیید حساب قابل مشاهده است.</span>{% if not user.is_authenticated %}<a class="button button-primary" href="{% url 'accounts:login' %}">ورود به حساب</a>{% else %}<span class="approval-note">حساب در انتظار تأیید</span>{% endif %}</div>{% endif %}</div>
+      <p class="detail-note">برای تأیید سازگاری قطعه با خودرو و هماهنگی ارسال، پیش از پرداخت با فروشگاه تماس بگیرید.</p>
+    </div>
+  </article>
+</section>
+{% endblock %}

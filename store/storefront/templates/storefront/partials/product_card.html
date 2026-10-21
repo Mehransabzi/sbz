@@ -1,0 +1,14 @@
+{% load persian_numbers %}
+<article class="product-card" data-reveal>
+  <a class="product-photo" href="{% url 'storefront:product-detail' product.pk %}" aria-label="جزئیات {{ product.name }}">
+    {% if product.display_image_url %}<img src="{{ product.display_image_url }}" alt="{{ product.name }}" loading="lazy" decoding="async">{% else %}<span class="photo-placeholder" aria-hidden="true">⚙</span>{% endif %}
+    <span class="photo-code">{{ product.chortke_code }}</span>
+  </a>
+  <div class="product-info">
+    <div class="product-meta"><span>{{ product.category_label }}</span><span>واحد: {{ product.unit|default:"عدد" }}</span></div>
+    <h2><a href="{% url 'storefront:product-detail' product.pk %}">{{ product.name }}</a></h2>
+    <p class="product-code">کد کالا: {{ product.chortke_code }}</p>
+    <div class="product-bottom"><div>{% if can_view_prices %}<strong class="price">{{ product.sale_price|floatformat:0|fa_num }} <small>ریال</small></strong>{% elif user.is_authenticated %}<span class="price-locked-link">⌑ قیمت پس از تأیید</span>{% else %}<a class="price-locked-link" href="{% url 'accounts:login' %}">ورود برای دیدن قیمت</a>{% endif %}</div>
+    {% if can_view_prices %}<div class="catalog-stepper" role="group" aria-label="تعداد {{ product.name }} در سبد"><button type="button" class="js-cart-step" data-image="{{ product.display_image_url }}" data-code="{{ product.chortke_code }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}" data-unit="{{ product.unit|default:'عدد' }}" data-delta="-1" aria-label="کم کردن {{ product.name }}">−</button><span data-product-quantity="{{ product.chortke_code }}">۰</span><button type="button" class="js-cart-step" data-image="{{ product.display_image_url }}" data-code="{{ product.chortke_code }}" data-name="{{ product.name }}" data-price="{{ product.sale_price }}" data-unit="{{ product.unit|default:'عدد' }}" data-delta="1" aria-label="افزودن {{ product.name }}">+</button></div>{% endif %}</div>
+  </div>
+</article>

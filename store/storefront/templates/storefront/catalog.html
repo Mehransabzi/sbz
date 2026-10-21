@@ -1,0 +1,41 @@
+{% extends 'storefront/base.html' %}
+{% load persian_numbers %}
+{% block title %}کاتالوگ قطعات | لوازم یدکی سبزی{% endblock %}
+{% block content %}
+<section class="catalog-page wrap">
+  <header class="catalog-page-heading" data-reveal>
+    <div><span class="eyebrow"><span class="status-dot"></span> کاتالوگ فروش عمده</span><h1>قطعات و لوازم یدکی</h1><p>فهرست محصولات همگام‌شده از چرتکه</p></div>
+    {% if last_sync %}<span class="sync-badge"><span class="status-dot"></span> آخرین به‌روزرسانی: {{ last_sync.finished_at|date:"Y/m/d H:i" }}</span>{% endif %}
+  </header>
+  <div class="catalog-layout">
+    <aside class="catalog-sidebar" data-reveal>
+      <div class="sidebar-heading"><span class="sidebar-icon" aria-hidden="true">☷</span><div><strong>دسته‌بندی‌ها</strong><small>دسته‌های دریافتی از چرتکه</small></div></div>
+      <nav aria-label="دسته‌بندی محصولات">
+        <a class="category-side-link {% if not active_category %}active{% endif %}" href="{% url 'storefront:catalog' %}{% if query %}?q={{ query|urlencode }}{% endif %}"><span class="category-side-symbol" aria-hidden="true">⌂</span><span>همه کالاها</span></a>
+        {% for value, label in categories %}<a class="category-side-link {% if active_category == value %}active{% endif %}" href="?category={{ value|urlencode }}{% if query %}&q={{ query|urlencode }}{% endif %}"><span class="category-side-symbol" aria-hidden="true">◇</span><span>{{ label }}</span><span class="category-arrow" aria-hidden="true">←</span></a>{% empty %}<p class="muted sidebar-empty">هنوز دسته‌ای از چرتکه دریافت نشده است.</p>{% endfor %}
+      </nav>
+      {% if not can_view_prices %}<div class="sidebar-access"><span aria-hidden="true">✦</span><p>قیمت همکاری برای مشتریان تأییدشده نمایش داده می‌شود.</p>{% if user.is_authenticated %}<strong>در انتظار تأیید</strong>{% else %}<a href="{% url 'accounts:register' %}">درخواست حساب عمده</a>{% endif %}</div>{% endif %}
+    </aside>
+
+    <div class="catalog-results" data-view-switch="catalog">
+      <form class="catalog-tools" method="get" action="{% url 'storefront:catalog' %}">
+        {% if active_category %}<input type="hidden" name="category" value="{{ active_category }}">{% endif %}
+        <label class="search-box"><span aria-hidden="true">⌕</span><input type="search" name="q" value="{{ query }}" placeholder="نام قطعه، توضیح، خودرو یا کد کالا…" aria-label="جست‌وجوی کالا"></label>
+        <select name="sort" aria-label="مرتب‌سازی"><option value="featured" {% if sort == 'featured' %}selected{% endif %}>{% if query %}مرتبط‌ترین{% else %}جدیدترین{% endif %}</option>{% if can_view_prices %}<option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>ارزان‌ترین</option><option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>گران‌ترین</option>{% endif %}<option value="name" {% if sort == 'name' %}selected{% endif %}>نام کالا</option></select>
+        <button class="button button-outline" type="submit">اعمال</button>
+      </form>
+
+      {% if not can_view_prices %}<div class="price-access-banner" data-reveal><span class="access-lock" aria-hidden="true">⌑</span><div><strong>دسترسی قیمت ویژهٔ مشتریان تأییدشده است</strong><p>{% if user.is_authenticated %}حساب شما پس از بررسی فروشگاه تأیید می‌شود.{% else %}برای مشاهده قیمت ریالی و ثبت سفارش، وارد حساب تأییدشده شوید یا درخواست حساب عمده بفرستید.{% endif %}</p></div>{% if user.is_authenticated %}<span class="approval-note">در انتظار تأیید</span>{% else %}<a class="button button-primary" href="{% url 'accounts:login' %}">ورود</a><a class="button button-outline" href="{% url 'accounts:register' %}">ثبت‌نام</a>{% endif %}</div>{% endif %}
+
+      <div class="catalog-results-heading"><h2>{% if active_category %}{{ active_category }}{% else %}همه محصولات{% endif %}</h2><span>{{ page_obj.paginator.count|fa_num }} کالا</span></div>
+      {% if products %}
+        <div class="catalog-view-toolbar"><span class="muted">شیوه نمایش کالاها</span><div class="view-switch" role="group" aria-label="نمایش محصولات"><button type="button" data-view="cards" aria-pressed="true"><span aria-hidden="true">▦</span> کارت‌ها</button><button type="button" data-view="table" aria-pressed="false"><span aria-hidden="true">☷</span> جدولی</button></div></div>
+        <div class="product-grid" data-view-panel="cards">{% for product in products %}{% include 'storefront/partials/product_card.html' with product=product %}{% endfor %}</div>
+        <div data-view-panel="table" hidden>{% include 'storefront/partials/product_table.html' %}</div>
+        {% if page_obj.paginator.num_pages > 1 %}<nav class="pagination" aria-label="صفحه‌های کاتالوگ">{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&q={{ query|urlencode }}&category={{ active_category|urlencode }}&sort={{ sort }}">صفحه قبل</a>{% endif %}<span>صفحه {{ page_obj.number|fa_num }} از {{ page_obj.paginator.num_pages|fa_num }}</span>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&q={{ query|urlencode }}&category={{ active_category|urlencode }}&sort={{ sort }}">صفحه بعد</a>{% endif %}</nav>{% endif %}
+      {% else %}<div class="empty-state"><div class="empty-icon" aria-hidden="true">⌕</div><h3>{% if last_sync %}کالایی برای نمایش پیدا نشد{% else %}هنوز محصولی همگام نشده است{% endif %}</h3><p>فیلترها را تغییر دهید یا از مدیر فروشگاه بخواهید محصولات را از چرتکه به‌روزرسانی کند.</p><a class="button button-outline" href="{% url 'storefront:catalog' %}">پاک‌کردن فیلترها</a></div>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}
+

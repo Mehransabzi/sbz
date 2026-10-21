@@ -1,0 +1,22 @@
+{% extends 'controlpanel/base.html' %}{% load static %}
+{% block title %}عکس {{ product.name }}{% endblock %}
+{% block heading %}مدیریت عکس کالا{% endblock %}
+{% block content %}
+<section class="cp-card cp-product-image-editor">
+  <h2>{{ product.name }}</h2>
+  <p class="cp-hint">اولویت نمایش: عکس چرتکه، سپس عکس شما و در پایان تصویر پیش‌فرض. عکس شما هنگام همگام‌سازی حفظ می‌شود.</p>
+  <div class="cp-image-previews">
+    <figure><img src="{{ product.display_image_url }}" alt="{{ product.name }}" width="220" height="220"><figcaption>عکس فعلی سایت{% if product.image_url %} · چرتکه{% elif product.custom_image %} · عکس شما{% endif %}</figcaption></figure>
+    {% if product.custom_image %}<figure><img src="{{ product.custom_image.url }}" alt="عکس آپلودی شما" width="220" height="220"><figcaption>عکس ذخیره‌شده شما{% if product.image_url %} · جایگزین در صورت نبود عکس چرتکه{% endif %}</figcaption></figure>{% endif %}
+  </div>
+  <form method="post" enctype="multipart/form-data" data-product-image-form>
+    {% csrf_token %}{{ form.non_field_errors }}
+    <label class="form-field"><span>{{ form.image.label }}</span>{{ form.image }}{{ form.image.errors }}</label>
+    <p class="cp-hint">JPG، PNG یا WebP، حداکثر ۱۲ مگابایت. عکس به WebP فشرده و تا ۱۲۰۰ پیکسل کوچک می‌شود.</p>
+    <img class="cp-upload-preview" data-product-image-preview alt="پیش‌نمایش عکس انتخابی" width="220" height="220" hidden>
+    <p data-product-image-status role="status" aria-live="polite"></p>
+    <div class="cp-content-actions"><button class="button button-primary" type="submit">ذخیره عکس</button><a class="button button-quiet" href="{% url 'controlpanel:products' %}">بازگشت به محصولات</a><a class="button button-quiet" href="{% url 'controlpanel:product-description' product.pk %}">توضیحات کالا</a></div>
+  </form>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'controlpanel/product-image.js' %}?v=1" defer></script>{% endblock %}

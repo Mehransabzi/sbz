@@ -1,0 +1,18 @@
+{% extends 'storefront/base.html' %}
+{% block title %}ورود مشتریان | لوازم یدکی سبزی{% endblock %}
+{% block content %}
+<section class="account-page wrap">
+  <div class="account-card">
+    <span class="eyebrow">حساب مشتریان عمده</span>
+    <h1>ورود با شماره موبایل</h1>
+    <p class="muted">برای مشاهده قیمت‌ها وارد حساب تأییدشده خود شوید.</p>
+    {% if form.errors %}<p class="form-errors">نام کاربری یا رمز عبور درست نیست.</p>{% endif %}
+    <form method="post" class="account-form">{% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% for field in form %}<label class="form-field"><span>{{ field.label }}</span>{{ field }}{% if field.errors %}<small class="field-error">{{ field.errors|join:', ' }}</small>{% endif %}</label>{% endfor %}
+      <button class="button button-primary button-large" type="submit"><span aria-hidden="true">↪</span> ورود</button>
+    </form>
+    <p class="account-switch">حساب ندارید؟ <a href="{% url 'accounts:register' %}">ثبت‌نام مشتریان</a></p>
+  </div>
+</section>
+{% endblock %}

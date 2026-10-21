@@ -1,0 +1,15 @@
+:root { --primary: #022e21; --secondary: #a0bddb; --accent: #e4fd97; --header-bg: #09151c; --breadcrumbs-bg: #11262c; }
+body, #container { background: #f2f6f4; }
+#header { background: #09151c; color: #e8f2ed; border-bottom: 3px solid #022e21; }
+#branding h1, #branding h1 a:link, #branding h1 a:visited { color: #e4fd97; }
+.admin-branding { display: flex; align-items: center; gap: 14px; }
+.admin-branding img { width: 68px; height: 27px; object-fit: cover; }
+.admin-branding a { color: #e4fd97 !important; font-size: 16px; font-weight: 800; }
+#user-tools { color: #a0bddb; }
+.module h2, .module caption, .inline-group h2 { background: #0b3529; color: #e4fd97; }
+div.breadcrumbs { background: #12352d; color: #d9e9e2; }
+a:link, a:visited { color: #075d42; }
+button, input[type=submit], .submit-row input, a.button { border-radius: 7px; }
+input[type=submit], .submit-row input { background: #022e21; color: #e4fd97; }
+input[type=submit]:hover, .submit-row input:hover { background: #07543c; }
+tr:hover td, tr:hover th { background: #f1f8e6; }

@@ -1,0 +1,71 @@
+{% extends 'storefront/base.html' %}
+{% load static persian_numbers %}
+{% block title %}ربات هوشمند پخش عمده لوازم یدکی سبزی{% endblock %}
+{% block content %}
+{% include 'ai/partials/icons.html' %}
+<section class="wrap ai-page" data-ai-workspace>
+  <header class="ai-page-heading">
+    <div class="ai-heading-identity">
+      <span class="ai-page-icon">{% include 'ai/partials/icon.html' with name='bot' %}<i></i></span>
+      <div><span class="ai-eyebrow">دستیار اختصاصی فروشگاه سبزی</span><h1>ربات هوشمند پخش عمده لوازم یدکی سبزی</h1><p>از سؤال تا سبد خرید، همراه شما.</p></div>
+    </div>
+    <button type="button" class="ai-button ai-button-secondary ai-new-chat" aria-label="گفت‌وگوی تازه" title="گفت‌وگوی تازه" data-chat-clear data-create-endpoint="{% url 'ai_assistant:customer-conversation-create' %}">{% include 'ai/partials/icon.html' with name='plus' %}<span>گفت‌وگوی تازه</span></button>
+  </header>
+  <div class="ai-chat-shell">
+    <nav class="ai-mode-tabs" role="tablist" aria-label="ابزارهای دستیار">
+      <button type="button" id="ai-chat-tab" class="ai-mode-tab is-active" role="tab" aria-selected="true" aria-controls="ai-chat-panel" data-ai-tab="chat">{% include 'ai/partials/icon.html' with name='chat' %}<span>گفت‌وگو</span><small>قیمت، سفارش و حساب شما</small></button>
+      <button type="button" id="ai-image-tab" class="ai-mode-tab" role="tab" aria-selected="false" aria-controls="ai-image-panel" tabindex="-1" data-ai-tab="image">{% include 'ai/partials/icon.html' with name='image' %}<span>فاکتور از تصویر</span><small>عکس را به سبد خرید تبدیل کنید</small><i class="ai-tab-loading" hidden></i></button>
+    </nav>
+    <section class="ai-tab-panel ai-chat-panel is-active" id="ai-chat-panel" role="tabpanel" aria-labelledby="ai-chat-tab" data-ai-panel="chat">
+      <div class="ai-chat-messages" data-ai-messages role="log" aria-live="polite" aria-relevant="additions text" aria-label="پیام‌های گفت‌وگو">
+        <div class="ai-chat-welcome" data-chat-welcome>
+          <span class="ai-welcome-mark">{% include 'ai/partials/icon.html' with name='sparkles' %}</span><span class="ai-eyebrow">یک سؤال، شروع یک گفت‌وگو</span>
+          <h2>سلام{% if user.first_name %} {{ user.first_name }}{% endif %}، چطور کمکتان کنم؟</h2><p>قیمت و محصولات مشابه را پیدا کنید، سفارش‌ها را پیگیری کنید یا از حساب خودتان بپرسید.</p>
+          <div class="ai-prompt-grid" aria-label="پیشنهاد برای شروع">
+            <button type="button" class="ai-prompt" data-chat-prompt="قیمت فیلتر روغن و محصولات مشابه را بگو.">{% include 'ai/partials/icon.html' with name='search' %}<span>قیمت و محصولات مشابه</span>{% include 'ai/partials/icon.html' with name='arrow' %}</button>
+            <button type="button" class="ai-prompt" data-chat-prompt="وضعیت سفارش‌های اخیر من چیست؟">{% include 'ai/partials/icon.html' with name='cart' %}<span>پیگیری سفارش‌های من</span>{% include 'ai/partials/icon.html' with name='arrow' %}</button>
+            <button type="button" class="ai-prompt" data-chat-prompt="مانده بدهی حساب من چقدر است؟">{% include 'ai/partials/icon.html' with name='file' %}<span>مانده حساب من</span>{% include 'ai/partials/icon.html' with name='arrow' %}</button>
+          </div>
+        </div>
+      </div>
+      <div class="ai-chat-compose">
+        <div class="ai-chat-status" data-ai-status role="status"></div>
+        <form class="ai-chat-form" data-ai-chat data-chat-kind="customer" data-endpoint="{% url 'ai_assistant:customer-chat' %}" data-conversation-id="{{ conversation.pk }}">
+          {% csrf_token %}<label class="ai-sr-only" for="ai-message">پیام شما</label><textarea id="ai-message" name="message" rows="1" maxlength="4000" placeholder="سؤالتان را اینجا بنویسید…" enterkeyhint="enter"></textarea>
+          <button class="ai-send" type="submit" aria-label="ارسال پیام" title="ارسال پیام" disabled>{% include 'ai/partials/icon.html' with name='send' %}</button>
+        </form>
+        <div class="ai-composer-hint"><span>{% include 'ai/partials/icon.html' with name='shield' %} اطلاعات حساب، مخصوص شماست</span><small>قیمت‌ها از کاتالوگ سایت خوانده می‌شوند.</small></div>
+      </div>
+    </section>
+    <section class="ai-tab-panel ai-image-panel" id="ai-image-panel" role="tabpanel" aria-labelledby="ai-image-tab" data-ai-panel="image" hidden>
+      <div class="ai-upload-heading"><span class="ai-eyebrow">سفارش از روی عکس</span><h2>لیست خریدتان را به ما بسپارید</h2><p>یک عکس واضح از فاکتور یا فهرست کالاها کافی است.</p></div>
+      <div class="ai-image-quota" data-image-quota role="status"><div><strong>سهمیه بررسی تصویر</strong><span><b data-quota-remaining>{{ image_usage.remaining|fa_digits }}</b> ارسال باقی‌مانده از ۵ ارسال امروز</span></div><div class="ai-quota-slots" aria-hidden="true">{% for slot in '12345' %}<i {% if forloop.counter <= image_usage.used %}class="is-used"{% endif %}></i>{% endfor %}</div><small>سهمیه در ساعت ۰۰:۰۰ به وقت ایران تازه می‌شود. هر ارسال معتبر پذیرفته‌شده یک بار حساب می‌شود.</small></div>
+      <div class="ai-image-layout"><div class="ai-image-main">
+        <form class="ai-image-form" data-image-upload data-image-remaining="{{ image_usage.remaining }}" data-endpoint="{% url 'ai_assistant:customer-chat' %}" data-product-search-endpoint="{% url 'ai_assistant:customer-chat' %}" data-conversation-id="{{ conversation.pk }}" data-checkout-url="{% url 'storefront:checkout' %}" enctype="multipart/form-data">
+          {% csrf_token %}<input type="file" name="image" accept="image/jpeg,image/png,image/webp" data-image-file hidden aria-label="انتخاب تصویر فاکتور">
+          <button type="button" class="ai-dropzone" data-dropzone aria-label="انتخاب تصویر فاکتور یا فهرست خرید"><span class="ai-upload-art" aria-hidden="true"><span class="ai-upload-sheet ai-upload-sheet-back"></span><span class="ai-upload-sheet">{% include 'ai/partials/icon.html' with name='image' %}</span><span class="ai-upload-arrow">{% include 'ai/partials/icon.html' with name='upload' %}</span><i class="ai-art-spark spark-one"></i><i class="ai-art-spark spark-two"></i></span><strong>تصویر فاکتور را انتخاب کنید</strong><span>یا فایل را اینجا بکشید و رها کنید</span><small>JPG، PNG و WEBP · تا ۶ مگابایت</small></button>
+          <div class="ai-image-preview" data-image-preview hidden></div>
+          <div class="ai-image-actions"><button type="button" class="ai-button ai-button-secondary" data-image-reset hidden>{% include 'ai/partials/icon.html' with name='trash' %} حذف تصویر</button><button type="submit" class="ai-button ai-button-primary" data-image-submit disabled>{% include 'ai/partials/icon.html' with name='sparkles' %} بررسی تصویر</button></div>
+        </form>
+        <div class="ai-image-processing" data-image-processing hidden aria-busy="true">
+          <div class="ai-processing-art" aria-hidden="true"><span class="ai-processing-orbit orbit-one"></span><span class="ai-processing-orbit orbit-two"></span><span class="ai-scan-document"><i></i><i></i><i></i><i></i><span class="ai-scan-beam"></span></span><span class="ai-processing-spark">{% include 'ai/partials/icon.html' with name='sparkles' %}</span></div>
+          <span class="ai-processing-badge"><i></i> در حال بررسی تصویر</span><h3>یک قدم تا پیش‌فاکتور شما</h3>
+          <div class="ai-processing-copy" role="status" aria-live="polite"><p data-processing-message>نام کالاها و تعدادشان را بررسی می‌کنیم…</p></div>
+          <div class="ai-processing-progress" role="progressbar" aria-label="بررسی تصویر در حال انجام است"><i></i></div>
+          <div class="ai-processing-meta"><span>{% include 'ai/partials/icon.html' with name='clock' %}<b data-processing-elapsed>۰</b> ثانیه</span><button type="button" class="ai-text-button" data-image-cancel>توقف بررسی</button></div>
+        </div>
+        <div class="ai-image-result" data-image-result hidden><span>{% include 'ai/partials/icon.html' with name='check' %} پیش‌فاکتور شما آماده است</span><button type="button" class="ai-text-button" data-invoice-reopen>بازبینی اقلام {% include 'ai/partials/icon.html' with name='arrow' %}</button></div>
+        <div class="ai-image-status" data-image-status role="status" hidden></div>
+      </div>
+      <aside class="ai-image-guide" aria-label="مراحل سفارش از تصویر"><span class="ai-guide-label">سه قدم ساده</span><ol><li><span>۱</span><div><strong>عکس را انتخاب کنید</strong><p>نوشته‌ها واضح و تمام فاکتور در کادر باشد.</p></div></li><li><span>۲</span><div><strong>کالاها را بازبینی کنید</strong><p>نام محصول، تعداد و قیمت را بررسی و اصلاح کنید.</p></div></li><li><span>۳</span><div><strong>به سبد اضافه کنید</strong><p>اقلام فقط پس از تأیید شما به سبد خرید می‌روند.</p></div></li></ol><div class="ai-guide-tip">{% include 'ai/partials/icon.html' with name='shield' %}<p>قیمت‌ها از سایت خوانده می‌شوند؛ جمع فاکتور با انتخاب شما تغییر می‌کند.</p></div></aside></div>
+    </section>
+    <div class="ai-workspace-note">{% include 'ai/partials/icon.html' with name='info' %}<span>پاسخ‌ها را برای انتخاب نهایی قطعه بررسی کنید. پیام‌ها برای پیگیری خدمات در پنل فروشگاه نگهداری می‌شوند.</span></div>
+  </div>
+  <dialog class="ai-invoice-modal" data-invoice-modal aria-labelledby="ai-invoice-title" aria-describedby="ai-invoice-description">
+    <header class="ai-modal-header"><span class="ai-modal-icon">{% include 'ai/partials/icon.html' with name='check' %}</span><div><span class="ai-eyebrow" data-invoice-count>اقلام تصویر آماده بازبینی هستند</span><h2 id="ai-invoice-title">پیش‌فاکتور شما</h2><p id="ai-invoice-description">محصول درست را انتخاب کنید و تعداد را تغییر دهید.</p></div><button type="button" class="ai-icon-button" data-modal-close aria-label="بستن پیش‌فاکتور">{% include 'ai/partials/icon.html' with name='close' %}</button></header>
+    <div class="ai-modal-items" data-invoice-items></div>
+    <footer class="ai-modal-footer"><div class="ai-modal-summary"><div><span>جمع اقلام انتخاب‌شده</span><strong data-invoice-total>۰ ریال</strong></div><span class="ai-summary-count" data-invoice-selected>۰ قلم</span></div><p class="ai-modal-feedback" data-modal-feedback role="status" hidden></p><div class="ai-modal-actions"><button type="button" class="ai-button ai-button-secondary" data-modal-close>بازگشت</button><button type="button" class="ai-button ai-button-primary" data-invoice-confirm disabled>{% include 'ai/partials/icon.html' with name='cart' %}<span>افزودن به سبد خرید</span></button></div></footer>
+  </dialog>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{% static 'ai/chat.js' %}?v=20261013-quota1" defer></script>{% endblock %}
