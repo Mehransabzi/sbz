@@ -10,6 +10,19 @@ from store.controlpanel.models import Announcement
 
 
 class PublicDiscoveryTests(TestCase):
+    def test_install_manifest_and_worker(self):
+        response = self.client.get('/manifest.webmanifest')
+        self.assertEqual(response['Content-Type'], 'application/manifest+json')
+        manifest = response.json()
+        self.assertEqual(manifest['start_url'], '/')
+        self.assertEqual({icon['sizes'] for icon in manifest['icons']}, {'192x192', '512x512'})
+        response = self.client.get('/service-worker.js')
+        self.assertEqual(response['Service-Worker-Allowed'], '/')
+        self.assertEqual(response['Cache-Control'], 'no-cache')
+        for path in ('/manifest.webmanifest', '/service-worker.js'):
+            self.assertEqual(self.client.head(path).status_code, 200)
+            self.assertEqual(self.client.post(path).status_code, 405)
+
     def test_robots_and_head(self):
         response = self.client.get('/robots.txt')
         self.assertContains(response, 'Sitemap: https://sbzpart.ir/sitemap.xml')

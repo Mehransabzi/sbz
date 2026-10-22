@@ -7,6 +7,7 @@ from pathlib import Path
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from django.views.decorators.http import require_safe
 from store.storefront import seo
 
 admin.site.site_header = "مدیریت فروشگاه سبزی"
@@ -20,6 +21,14 @@ def health(_request):
     return Response({"status": "ok", "service": "shopsite-api"})
 
 
+@require_safe
+def app_manifest(_request):
+    manifest = Path(settings.BASE_DIR) / "store" / "storefront" / "static" / "storefront" / "manifest.webmanifest"
+    return HttpResponse(manifest.read_text(encoding="utf-8"), content_type="application/manifest+json",
+                        headers={"Cache-Control": "no-cache"})
+
+
+@require_safe
 def service_worker(_request):
     worker = Path(settings.BASE_DIR) / "store" / "storefront" / "static" / "storefront" / "service-worker.js"
     return HttpResponse(worker.read_text(encoding="utf-8"), content_type="application/javascript; charset=utf-8",
@@ -27,6 +36,7 @@ def service_worker(_request):
 
 
 urlpatterns = [
+    path("manifest.webmanifest", app_manifest, name="app-manifest"),
     path("robots.txt", seo.robots, name="robots"),
     path("sitemap.xml", seo.sitemap, name="sitemap"),
     path("service-worker.js", service_worker, name="service-worker"),
