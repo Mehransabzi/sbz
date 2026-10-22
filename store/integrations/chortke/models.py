@@ -19,6 +19,9 @@ class SyncRun(models.Model):
     progress = models.PositiveSmallIntegerField(default=0)
     stage = models.CharField(max_length=160, blank=True)
     image_errors = models.JSONField(default=list)
+    image_fallbacks = models.JSONField(default=list)
+    catalog_summary = models.JSONField(default=dict)
+    search_index = models.JSONField(default=dict)
 
     class Meta:
         ordering = ["-started_at"]

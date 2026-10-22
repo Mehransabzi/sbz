@@ -1,0 +1,8 @@
+{% load persian_numbers %}
+<section class="cp-stats" aria-label="تعداد واقعی کالاها">
+  <article><span>کالاهای فعال چرتکه</span><strong>{{ inventory.active|fa_num }}</strong></article>
+  <article><span>قابل نمایش در کاتالوگ</span><strong>{{ inventory.public|fa_num }}</strong></article>
+  <article><span>فعال ولی پنهان توسط مدیر</span><strong>{{ inventory.hidden|fa_num }}</strong></article>
+  <article><span>غیرفعال یا حذف‌شده از چرتکه</span><strong>{{ inventory.inactive|fa_num }}</strong></article>
+</section>
+<p class="cp-hint">فعال‌ها = کاتالوگ + پنهان‌ها. همه سوابق: {{ inventory.total|fa_num }} کالا؛ سوابق غیرفعال برای حفظ ارتباط سفارش‌ها نگه‌داری می‌شوند و در کاتالوگ نیستند.</p>

@@ -1,0 +1,7 @@
+{% load persian_numbers %}
+<nav class="product-filter-tabs" aria-label="فیلتر نمایش محصولات">
+  <a class="{% if visibility == 'visible' %}active{% endif %}" href="?visibility=visible">کاتالوگ <b>{{ inventory.public|fa_num }}</b></a>
+  <a class="{% if visibility == 'hidden' %}active{% endif %}" href="?visibility=hidden">فعال‌های پنهان <b>{{ inventory.hidden|fa_num }}</b></a>
+  <a class="{% if visibility == 'inactive' %}active{% endif %}" href="?visibility=inactive">غیرفعال‌ها <b>{{ inventory.inactive|fa_num }}</b></a>
+  <a class="{% if visibility == 'all' %}active{% endif %}" href="?visibility=all">همه سوابق <b>{{ inventory.total|fa_num }}</b></a>
+</nav>

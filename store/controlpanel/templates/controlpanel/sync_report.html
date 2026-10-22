@@ -1,1 +1,54 @@
-{% extends 'controlpanel/base.html' %}{% load persian_numbers %}{% block heading %}گزارش همگام‌سازی{% endblock %}{% block content %}{% for run in runs %}<section class="cp-card"><h2>{{ run.started_at|date:'Y/m/d H:i'|fa_digits }} · {{ run.get_status_display }}</h2><p>{{ run.stage }} · {{ run.saved_count|fa_num }} کالا</p>{% if run.status == 'running' %}<progress max="100" value="{{ run.progress }}" data-running-sync="{% url 'controlpanel:sync-status' run.pk %}"></progress>{% endif %}<p>{{ run.message|linebreaksbr }}</p>{% if run.image_errors %}<div class="cp-table-wrap"><table><thead><tr><th>کد کالا</th><th>نام محصول</th><th>علت دریافت‌نشدن تصویر</th></tr></thead><tbody>{% for error in run.image_errors %}<tr><td>{{ error.code|fa_digits }}</td><td>{{ error.name }}</td><td>{{ error.reason }}</td></tr>{% endfor %}</tbody></table></div>{% endif %}</section>{% empty %}<section class="cp-card">هنوز همگام‌سازی انجام نشده است.</section>{% endfor %}{% endblock %}
+{% extends 'controlpanel/base.html' %}{% load persian_numbers %}
+{% block title %}گزارش همگام‌سازی{% endblock %}
+{% block heading %}گزارش همگام‌سازی{% endblock %}
+{% block content %}
+{% include 'controlpanel/includes/inventory_counts.html' %}
+<section class="cp-card">
+  <h2>وضعیت فعلی جستجو</h2>
+  <p>{{ current_search.indexed|fa_num }} از {{ current_search.total|fa_num }} کالای فعال، بردار به‌روز دارند؛ {{ current_search.missing|fa_num }} کالا نیازمند بازسازی است.</p>
+  {% if not current_search.semantic_enabled %}<p class="cp-hint">بردارها برای جستجوی معنایی آماده می‌شوند؛ استفاده از جستجوی معنایی طبق تنظیمات سرور خاموش است. جستجوی نام، کد و املایی کاتالوگ فعال است.</p>{% endif %}
+</section>
+{% for run in runs %}
+<section class="cp-card">
+  <h2>{{ run.started_at|date:'Y/m/d H:i'|fa_digits }} · {{ run.get_status_display }}</h2>
+  <p>{{ run.stage }}</p>
+  {% if run.status == 'running' %}<progress max="100" value="{{ run.progress }}" data-running-sync="{% url 'controlpanel:sync-status' run.pk %}"></progress>{% endif %}
+  {% if run.catalog_summary %}
+    <div class="cp-table-wrap"><table><thead><tr><th>ردیف دریافتی</th><th>کالای یکتا ذخیره‌شده</th><th>فعال</th><th>کاتالوگ</th><th>فعالِ پنهان</th><th>سوابق غیرفعال</th><th>کالای جدید</th></tr></thead>
+    <tbody><tr><td>{{ run.received_count|fa_num }}</td><td>{{ run.saved_count|fa_num }}</td><td>{{ run.catalog_summary.active|fa_num }}</td><td>{{ run.catalog_summary.public|fa_num }}</td><td>{{ run.catalog_summary.hidden|fa_num }}</td><td>{{ run.catalog_summary.inactive|fa_num }}</td><td>{{ run.catalog_summary.created|fa_num }}</td></tr></tbody></table></div>
+    {% if run.catalog_summary.repeated_rows %}<p>{{ run.catalog_summary.repeated_rows|fa_num }} ردیف کاملاً تکراری با شناسه یکسان فقط یک بار ذخیره شد.</p>{% endif %}
+    {% if run.skipped_count %}<p class="cp-hint">{{ run.skipped_count|fa_num }} ردیف به‌علت نداشتن شناسه و کد رد شد.</p>{% endif %}
+    {% if run.catalog_summary.absent_codes %}<p class="cp-hint">این کدهای قبلی در پاسخ جدید چرتکه نبودند و به‌صورت سابقه غیرفعال نگه‌داری شدند: {% for code in run.catalog_summary.absent_codes %}{{ code|fa_digits }}{% if not forloop.last %}، {% endif %}{% endfor %}</p>{% endif %}
+    {% if run.catalog_summary.upstream_inactive %}<p>{{ run.catalog_summary.upstream_inactive|fa_num }} کالا در خود چرتکه غیرفعال است.</p>{% endif %}
+    {% if run.catalog_summary.shared_codes %}
+    <details><summary>کدهای مشترک چرتکه؛ کالاها با شناسه مستقل ذخیره شدند ({{ run.catalog_summary.shared_codes|length|fa_num }} گروه)</summary>
+      <p>کد نمایشی چرتکه یکتا نیست. مبنای همگام‌سازی، شناسه یکتای هر کالاست؛ کد حسابداری هر کالا جداگانه نگه‌داری می‌شود.</p>
+      <div class="cp-table-wrap"><table><thead><tr><th>کد مشترک</th><th>شناسه چرتکه</th><th>کد حسابداری</th><th>نام کالا</th></tr></thead><tbody>
+      {% for group in run.catalog_summary.shared_codes %}{% for product in group.products %}<tr><td>{{ group.code|fa_digits }}</td><td>{{ product.id|fa_digits }}</td><td>{{ product.accounting_code|fa_digits }}</td><td>{{ product.name }}</td></tr>{% endfor %}{% endfor %}
+      </tbody></table></div>
+    </details>
+    {% endif %}
+  {% else %}
+    <p>ردیف‌های ثبت‌شده طبق گزارش قدیمی: {{ run.saved_count|fa_num }}؛ دریافتی: {{ run.received_count|fa_num }}</p>
+    <p class="cp-hint">این گزارش پیش از اصلاح شمارش و شناسایی کالاها ثبت شده است. ردیف‌های دارای کد مشترک ممکن بود روی یک کالا نوشته شوند؛ تعداد واقعی فعلی در بالای صفحه آمده است.</p>
+  {% endif %}
+  {% if run.message %}<details {% if run.status == 'failed' %}open{% endif %}><summary>پیام ثبت‌شده هنگام اجرای این نوبت</summary><p>{{ run.message|linebreaksbr }}</p></details>{% endif %}
+  {% if run.search_index %}
+    <h3>نتیجه بازسازی جستجو{% if run.search_index.source == 'rebuild_product_search' %} · پیگیری با دستور بازسازی{% endif %}</h3>
+    <p>{% if run.search_index.status == 'success' %}تکمیل شد{% else %}نیازمند پیگیری{% endif %}؛ پوشش {{ run.search_index.indexed|fa_num }} از {{ run.search_index.total|fa_num }}؛ {{ run.search_index.changed|default:0|fa_num }} بردار بازسازی شد.</p>
+    <p>مدل: <bdi>{{ run.search_index.model }}</bdi> · زمان بررسی: <bdi>{{ run.search_index.checked_at }}</bdi>{% if run.search_index.error %} · خطا: <bdi>{{ run.search_index.error }}</bdi>{% endif %}</p>
+  {% endif %}
+  {% if run.image_fallbacks %}
+    <h3>تصویر جایگزین برای {{ run.image_fallbacks|length|fa_num }} کالا</h3>
+    <p class="cp-hint">دریافت تصویر از چرتکه برای این کالاها موفق نبود؛ نمایش سایت با تصویر قبلیِ سالم، عکس مدیر یا تصویر پیش‌فرض ادامه دارد. در همگام‌سازی بعدی دوباره از چرتکه دریافت می‌شود. خطاهای موقت تا سه بار تلاش می‌شوند؛ خطای ۴۰۴ به معنی نبود فایل در چرتکه است.</p>
+    <div class="cp-table-wrap"><table><thead><tr><th>کد کالا</th><th>نام محصول</th><th>پاسخ چرتکه</th><th>تعداد تلاش</th><th>تصویر مورد استفاده</th></tr></thead><tbody>
+    {% for item in run.image_fallbacks %}<tr><td>{{ item.source_code|default:item.code|fa_digits }}</td><td>{{ item.name }}</td><td><bdi>{{ item.reason }}</bdi></td><td>{{ item.attempts|default:1|fa_num }}</td><td>{% if item.fallback == 'previous' %}تصویر قبلی سالم حفظ شد{% elif item.fallback == 'custom' %}عکس بارگذاری‌شده مدیر{% else %}تصویر پیش‌فرض{% endif %}</td></tr>{% endfor %}
+    </tbody></table></div>
+  {% endif %}
+  {% if run.image_errors %}
+    <h3>خطاهای تصویر ثبت‌شده در این گزارش</h3>
+    <div class="cp-table-wrap"><table><thead><tr><th>کد کالا</th><th>نام محصول</th><th>علت دریافت‌نشدن تصویر</th></tr></thead><tbody>{% for error in run.image_errors %}<tr><td>{{ error.code|fa_digits }}</td><td>{{ error.name }}</td><td><bdi>{{ error.reason }}</bdi></td></tr>{% endfor %}</tbody></table></div>
+  {% endif %}
+</section>
+{% empty %}<section class="cp-card">هنوز همگام‌سازی انجام نشده است.</section>{% endfor %}
+{% endblock %}

@@ -23,4 +23,7 @@ def query_tokens(text):
 
 
 def document_text(product):
-    return "\n".join(filter(None, [product.name, product.category, product.display_description[:2400], product.accounting_code, product.chortke_code, product.barcode, product.unit]))
+    values = [product.name, product.category, product.display_description[:2400], product.accounting_code, product.chortke_code, product.barcode, product.unit]
+    if product.source_code and product.source_code not in values:
+        values.append(product.source_code)
+    return "\n".join(filter(None, values))

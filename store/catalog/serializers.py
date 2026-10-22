@@ -9,7 +9,7 @@ class StorefrontProductSerializer(serializers.ModelSerializer):
     description = serializers.CharField(source="display_description", read_only=True)
     id = serializers.CharField(source="chortke_code")
     nameEn = serializers.SerializerMethodField()
-    oemCode = serializers.CharField(source="chortke_code")
+    oemCode = serializers.CharField(source="display_code")
     categoryLabel = serializers.CharField(source="category", allow_blank=True)
     category = serializers.CharField(allow_blank=True)
     price = serializers.SerializerMethodField()

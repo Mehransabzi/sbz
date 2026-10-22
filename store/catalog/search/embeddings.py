@@ -1,5 +1,7 @@
 import hashlib
 import math
+import time
+import requests
 from django.conf import settings
 from django.core.cache import cache
 from store.ai.client import post_gapgpt
@@ -13,8 +15,19 @@ def vectors(texts, *, query=False):
     payload = {"model": settings.SEARCH_EMBEDDING_MODEL, "input": texts}
     if "text-embedding-3" in settings.SEARCH_EMBEDDING_MODEL:
         payload["dimensions"] = settings.SEARCH_EMBEDDING_DIMENSIONS
-    response = post_gapgpt("/embeddings", headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json=payload, timeout=(8, 15) if query else (8, 45))
-    response.raise_for_status()
+    for attempt in range(3 if not query else 1):
+        try:
+            response = post_gapgpt("/embeddings", headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, json=payload, timeout=(8, 15) if query else (8, 45))
+            response.raise_for_status()
+            break
+        except requests.RequestException as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            transient = isinstance(exc, (requests.Timeout, requests.ConnectionError)) or status in {429, 500, 502, 503, 504}
+            if query or not transient or attempt == 2:
+                raise
+            if exc.response is not None:
+                exc.response.close()
+            time.sleep(2 ** attempt)
     rows = sorted(response.json().get("data", []), key=lambda row: row["index"])
     if len(rows) != len(texts):
         raise ValueError("پاسخ سرویس بردارسازی کامل نبود.")

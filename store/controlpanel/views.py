@@ -11,6 +11,8 @@ from django.views.decorators.http import require_POST, require_http_methods
 
 from django.contrib.auth import get_user_model
 from store.catalog.models import Product
+from store.catalog.inventory import catalog_counts
+from store.catalog.search.indexing import index_status
 from store.catalog.search.engine import search_products
 from store.integrations.chortke.models import SyncRun
 from store.integrations.chortke.services import sync_catalog
@@ -98,20 +100,21 @@ def customers(request):
 @staff_required
 def products(request):
     query = request.GET.get("q", "").strip()[:120]
-    visibility = request.GET.get("visibility", "all")
+    visibility = request.GET.get("visibility", "visible")
     rows = Product.objects.all()
     if visibility == "hidden":
-        rows = rows.filter(is_visible=False)
+        rows = rows.filter(is_active=True, is_visible=False)
     elif visibility == "visible":
-        rows = rows.filter(is_visible=True)
+        rows = rows.filter(is_active=True, is_visible=True)
+    elif visibility == "inactive":
+        rows = rows.filter(is_active=False)
+    elif visibility != "all":
+        visibility = "visible"
+        rows = rows.filter(is_active=True, is_visible=True)
     if query:
         rows = search_products(query, queryset=rows)
-    counts = {
-        "all_count": Product.objects.count(),
-        "visible_count": Product.objects.filter(is_visible=True).count(),
-        "hidden_count": Product.objects.filter(is_visible=False).count(),
-    }
-    return render(request, "controlpanel/products.html", {"page_obj": page(request, rows), "query": query, "visibility": visibility, **counts})
+    return render(request, "controlpanel/products.html", {"page_obj": page(request, rows), "query": query,
+                   "visibility": visibility, "inventory": catalog_counts()})
 
 
 @staff_required
@@ -206,14 +209,16 @@ def sync(request):
 def sync_status(request, run_id):
     from django.http import JsonResponse
     run = get_object_or_404(SyncRun, pk=run_id)
-    response = JsonResponse({"id": run.pk, "status": run.status, "progress": run.progress, "stage": run.stage, "message": run.message, "image_errors": run.image_errors, "saved_count": run.saved_count})
+    response = JsonResponse({"id": run.pk, "status": run.status, "progress": run.progress, "stage": run.stage, "message": run.message, "image_errors": run.image_errors, "saved_count": run.saved_count,
+                             "image_fallbacks": run.image_fallbacks, "catalog_summary": run.catalog_summary, "search_index": run.search_index})
     response["Cache-Control"] = "no-store"
     return response
 
 
 @staff_required
 def sync_report(request):
-    return render(request, "controlpanel/sync_report.html", {"runs": SyncRun.objects.all()[:20]})
+    return render(request, "controlpanel/sync_report.html", {"runs": SyncRun.objects.all()[:20],
+                  "inventory": catalog_counts(), "current_search": index_status()})
 
 
 @staff_required

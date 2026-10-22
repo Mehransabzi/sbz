@@ -2,7 +2,7 @@ from django.core.management.base import BaseCommand
 from django.core.cache import cache
 from django.db import transaction
 from store.catalog.models import Product
-from store.catalog.images import catalog_sync_lock, prepare_images, prune_images, remove_managed, image_root
+from store.catalog.images import catalog_sync_lock, prepare_images, prune_images, remove_managed, image_root, preserve_previous_image
 
 
 class Command(BaseCommand):
@@ -14,6 +14,9 @@ class Command(BaseCommand):
             sources = {p.chortke_code: p.image_source_url or (p.image_url if p.image_url.startswith(("https://", "http://")) else "") for p in products}
             generation, optimized, errors = prepare_images(sources)
             try:
+                for product in products:
+                    if any(error["code"] == product.chortke_code for error in errors):
+                        optimized[product.chortke_code] = preserve_previous_image(product, generation)
                 with transaction.atomic():
                     for product in products:
                         data = optimized.get(product.chortke_code, {})

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360" role="img" aria-labelledby="title desc">
+  <title id="title">تصویر کالا موجود نیست</title>
+  <desc id="desc">تصویر جایگزین قطعات خودرو</desc>
+  <rect width="480" height="360" rx="24" fill="#edf4ef"/>
+  <g fill="none" stroke="#3d6b52" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
+    <path d="m175 85 65-25 65 25v75l-65 35-65-35z M175 85l65 30 65-30 M240 115v80"/>
+    <rect x="115" y="220" width="250" height="65" rx="22"/>
+    <path d="m150 245 20-16 18 16-18 20z M215 249h105"/>
+  </g>
+  <text x="240" y="330" text-anchor="middle" font-family="Tahoma, sans-serif" font-size="18" fill="#294d38" direction="rtl">تصویر کالا موجود نیست</text>
+</svg>

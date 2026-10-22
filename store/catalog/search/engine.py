@@ -30,7 +30,7 @@ def _snapshot():
         except ProductEmbedding.DoesNotExist:
             vector = []
         name = normalize(product.name)
-        rows.append({"id": product.pk, "name": name, "name_tokens": name.split(), "category_tokens": normalize(product.category).split(), "description_tokens": normalize(product.display_description[:2400]).split(), "codes": [normalize(value).replace(" ", "") for value in (product.chortke_code, product.accounting_code, product.barcode) if value], "vector": vector})
+        rows.append({"id": product.pk, "name": name, "name_tokens": name.split(), "category_tokens": normalize(product.category).split(), "description_tokens": normalize(product.display_description[:2400]).split(), "codes": [normalize(value).replace(" ", "") for value in (product.chortke_code, product.source_code, product.accounting_code, product.barcode) if value], "vector": vector})
     cache.set(key, rows, 90)
     return rows
 

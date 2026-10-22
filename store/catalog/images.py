@@ -5,6 +5,7 @@ import ipaddress
 import logging
 import shutil
 import socket
+import time
 import uuid
 import warnings
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -120,6 +121,50 @@ def encode_webp(content):
             return output.getvalue()
 
 
+class ImagePreparationError(Exception):
+    def __init__(self, reason, attempts):
+        self.reason = reason
+        self.attempts = attempts
+        super().__init__(reason)
+
+
+def _download_with_retry(source, client):
+    for attempt in range(1, 4):
+        try:
+            return download_image(source, client=client)
+        except requests.RequestException as exc:
+            status = exc.response.status_code if exc.response is not None else None
+            transient = isinstance(exc, (requests.Timeout, requests.ConnectionError)) or status in {429, 500, 502, 503, 504}
+            if transient and attempt < 3:
+                time.sleep(2 ** (attempt - 1))
+                continue
+            if status is not None:
+                reason = f"HTTP {status}"
+            elif isinstance(exc, requests.Timeout):
+                reason = "مهلت دریافت تصویر تمام شد"
+            else:
+                reason = "اتصال به سرور تصویر برقرار نشد"
+            raise ImagePreparationError(reason, attempt) from exc
+
+
+def preserve_previous_image(product, generation):
+    """Copy a valid old managed image into the new generation before pruning."""
+    prefix = settings.MEDIA_URL.rstrip("/") + "/product-images/"
+    if not product or not product.image_url.startswith(prefix):
+        return {}
+    relative = product.image_url[len(prefix):]
+    root = image_root().resolve()
+    source = (root / relative).resolve()
+    if not source.is_relative_to(root) or not source.is_file():
+        return {}
+    # Re-encoding also verifies that the retained file is a usable image.
+    data = encode_webp(source.read_bytes())
+    filename = hashlib.sha256(product.chortke_code.encode()).hexdigest()[:24] + ".webp"
+    target = root / generation / filename
+    target.write_bytes(data)
+    return {"image_url": prefix + generation + "/" + filename, "image_size": len(data)}
+
+
 def prepare_images(sources, *, client=None, progress=None):
     generation = "g-" + uuid.uuid4().hex
     directory = image_root() / generation
@@ -128,14 +173,7 @@ def prepare_images(sources, *, client=None, progress=None):
     errors = []
 
     def prepare(code, source):
-        for attempt in range(3):
-            try:
-                raw = download_image(source, client=client)
-                break
-            except (requests.Timeout, requests.ConnectionError):
-                if attempt == 2:
-                    raise
-                __import__('time').sleep(attempt + 1)
+        raw = _download_with_retry(source, client)
         data = encode_webp(raw)
         filename = hashlib.sha256(code.encode()).hexdigest()[:24] + ".webp"
         (directory / filename).write_bytes(data)
@@ -150,7 +188,9 @@ def prepare_images(sources, *, client=None, progress=None):
                     product_code, result = future.result()
                     results[product_code] = result
                 except Exception as exc:
-                    if isinstance(exc, requests.HTTPError):
+                    if isinstance(exc, ImagePreparationError):
+                        reason = exc.reason
+                    elif isinstance(exc, requests.HTTPError):
                         reason = "HTTP " + str(exc.response.status_code)
                     elif isinstance(exc, requests.Timeout):
                         reason = "مهلت دریافت تصویر تمام شد"
@@ -160,7 +200,7 @@ def prepare_images(sources, *, client=None, progress=None):
                         reason = str(exc)[:160]
                     else:
                         reason = "فایل تصویر معتبر نیست یا قابل تبدیل نیست"
-                    errors.append({"code": code, "reason": reason})
+                    errors.append({"code": code, "reason": reason, "attempts": getattr(exc, "attempts", 1)})
                     logger.warning("Product image could not be optimized (code %s).", code)
                 if progress:
                     progress(len(results) + len(errors), len(futures))

@@ -5,6 +5,10 @@ class Product(models.Model):
     """Local storefront snapshot of one item in Chortke."""
 
     chortke_code = models.CharField(max_length=100, unique=True)
+    # chortke_code remains the stable cart/order key for existing customers.
+    # Chortke's displayed `code` is not unique; its `id` is the sync identity.
+    chortke_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    source_code = models.CharField(max_length=100, blank=True)
     accounting_code = models.CharField(max_length=100, blank=True)
     barcode = models.CharField(max_length=128, blank=True)
     name = models.CharField(max_length=255)
@@ -33,13 +37,17 @@ class Product(models.Model):
         return f"{self.name} ({self.chortke_code})"
 
     @property
+    def display_code(self):
+        return self.source_code or self.chortke_code
+
+    @property
     def display_image_url(self):
         if self.image_url:
             return self.image_url
         if self.custom_image:
             return self.custom_image.url
         from django.templatetags.static import static
-        return static('storefront/media/brand-logo.png')
+        return static('storefront/icons/product-placeholder.svg')
 
     @property
     def has_product_image(self):
