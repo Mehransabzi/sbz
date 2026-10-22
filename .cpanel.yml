@@ -3,7 +3,9 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/sbzparti/sbz
     - /usr/bin/git archive --format=tar HEAD | /bin/tar -xf - -C $DEPLOYPATH
+    - /home/sbzparti/virtualenv/sbz/3.12/bin/python /home/sbzparti/sbz/deployment/backup_database.py
     - /home/sbzparti/virtualenv/sbz/3.12/bin/python /home/sbzparti/sbz/manage.py migrate --noinput --settings=config.cpanel
     - /home/sbzparti/virtualenv/sbz/3.12/bin/python /home/sbzparti/sbz/manage.py collectstatic --noinput --settings=config.cpanel
     - /bin/mkdir -p /home/sbzparti/sbz/tmp
     - /usr/bin/touch /home/sbzparti/sbz/tmp/restart.txt
+    - /home/sbzparti/virtualenv/sbz/3.12/bin/python /home/sbzparti/sbz/deployment/configure_https.py --document-root /home/sbzparti/public_html

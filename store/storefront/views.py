@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_safe, require_POST
 
 from store.accounts.decorators import approved_customer_required
 from store.accounts.permissions import can_view_prices
@@ -65,24 +65,24 @@ def _catalog_context(request, *, page_size=24):
     }
 
 
-@require_GET
+@require_safe
 def home(request):
     return render(request, "storefront/home.html", {"categories": _category_options(), "site_config": SiteConfiguration.objects.first()})
 
 
-@require_GET
+@require_safe
 def catalog(request):
     return render(request, "storefront/catalog.html", _catalog_context(request))
 
 
-@require_GET
+@require_safe
 def product_detail(request, product_id):
     product = get_object_or_404(Product, pk=product_id, is_active=True, is_visible=True)
     return render(request, "storefront/product_detail.html", {"product": product})
 
 
 @approved_customer_required
-@require_GET
+@require_safe
 def checkout(request):
     return render(request, "storefront/checkout.html", {"form": OrderForm()})
 
@@ -164,7 +164,7 @@ def submit_order(request):
 
 
 @approved_customer_required
-@require_GET
+@require_safe
 def order_success(request, order_number):
     order = get_object_or_404(Order, order_number=order_number, user=request.user)
     # Order numbers are hard to guess and this receipt is intentionally read-only.

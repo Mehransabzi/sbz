@@ -8,4 +8,4 @@
   </div>
 {% endblock %}
 
-{% block extrahead %}{{ block.super }}{% include "includes/favicon.html" %}{% endblock %}
+{% block extrahead %}{{ block.super }}<link rel="canonical" href="{{ canonical_url }}">{% include "includes/favicon.html" %}{% endblock %}

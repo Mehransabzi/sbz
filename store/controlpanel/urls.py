@@ -4,6 +4,9 @@ from store.support import views as support_views
 
 app_name = "controlpanel"
 urlpatterns = [
+    path("announcements/", views.announcements, name="announcements"),
+    path("announcements/<int:announcement_id>/edit/", views.announcements, name="announcement-edit"),
+    path("announcements/<int:announcement_id>/delete/", views.delete_announcement, name="announcement-delete"),
     path("products/<int:product_id>/image/", views.product_image, name="product-image"),
     path('support/',support_views.inbox,name='support-inbox'),
     path("stories/", views.daily_stories, name="daily-stories"),

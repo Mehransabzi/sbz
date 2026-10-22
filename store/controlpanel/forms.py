@@ -1,6 +1,13 @@
 from pathlib import Path
 from django import forms
-from .models import SiteConfiguration
+from .models import Announcement, SiteConfiguration
+
+
+class AnnouncementForm(forms.ModelForm):
+    class Meta:
+        model = Announcement
+        fields = ("title", "body", "is_active")
+        widgets = {"body": forms.Textarea(attrs={"rows": 6})}
 
 
 class SiteConfigurationForm(forms.ModelForm):

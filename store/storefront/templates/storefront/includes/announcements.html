@@ -1,0 +1,11 @@
+{% if site_announcements %}
+<section class="wrap site-announcements" aria-label="اطلاعیه‌های فروشگاه">
+  {% for announcement in site_announcements %}
+  <article class="site-announcement">
+    <span class="announcement-label">اطلاعیه فروشگاه</span>
+    <h2>{{ announcement.title }}</h2>
+    <p>{{ announcement.body|linebreaksbr }}</p>
+  </article>
+  {% endfor %}
+</section>
+{% endif %}

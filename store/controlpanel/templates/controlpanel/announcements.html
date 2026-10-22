@@ -1,0 +1,28 @@
+{% extends 'controlpanel/base.html' %}
+{% block title %}اطلاعیه‌ها{% endblock %}
+{% block heading %}مدیریت اطلاعیه‌ها{% endblock %}
+{% block content %}
+<section class="cp-card">
+  <h2>{% if editing %}ویرایش اطلاعیه{% else %}اطلاعیه جدید{% endif %}</h2>
+  <p>اطلاعیه‌های فعال در بالای صفحات فروشگاه نمایش داده می‌شوند.</p>
+  <form method="post" class="account-form">
+    {% csrf_token %}{{ form.non_field_errors }}
+    {% for field in form %}<label class="form-field"><span>{{ field.label }}</span>{{ field }}{% if field.errors %}<small class="field-error">{{ field.errors|join:', ' }}</small>{% endif %}</label>{% endfor %}
+    <div><button class="button button-primary" type="submit">ذخیره اطلاعیه</button>{% if editing %} <a class="button button-quiet" href="{% url 'controlpanel:announcements' %}">انصراف</a>{% endif %}</div>
+  </form>
+</section>
+<section class="cp-card">
+  <h2>اطلاعیه‌های ثبت‌شده</h2>
+  {% for item in page_obj %}
+  <article class="announcement-admin-item">
+    <h3>{{ item.title }}</h3><p>{{ item.body|linebreaksbr }}</p>
+    <p>{% if item.is_active %}وضعیت: منتشرشده{% else %}وضعیت: غیرفعال{% endif %}</p>
+    <a class="button button-quiet" href="{% url 'controlpanel:announcement-edit' item.pk %}">ویرایش</a>
+    <form method="post" action="{% url 'controlpanel:announcement-delete' item.pk %}" class="announcement-delete" onsubmit="return confirm('این اطلاعیه حذف شود؟')">
+      {% csrf_token %}<button class="button button-quiet" type="submit">حذف اطلاعیه</button>
+    </form>
+  </article>
+  {% empty %}<p>هنوز اطلاعیه‌ای ثبت نشده است.</p>{% endfor %}
+  {% if page_obj.has_other_pages %}<nav aria-label="صفحه‌بندی اطلاعیه‌ها">{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">قبلی</a>{% endif %} <span>صفحه {{ page_obj.number }} از {{ page_obj.paginator.num_pages }}</span> {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">بعدی</a>{% endif %}</nav>{% endif %}
+</section>
+{% endblock %}

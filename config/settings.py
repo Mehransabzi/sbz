@@ -57,6 +57,8 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "store.accounts.context_processors.customer_access",
                 "store.storefront.context_processors.shop_contact",
+                "store.storefront.context_processors.announcements",
+                "store.storefront.seo.canonical",
             ],
         },
     },
@@ -113,3 +115,6 @@ SEARCH_EMBEDDING_DIMENSIONS = 384
 PRODUCT_IMAGE_MAX_SIZE = 960
 PRODUCT_IMAGE_WEBP_QUALITY = 76
 PRODUCT_IMAGE_DOWNLOAD_LIMIT = 12 * 1024 * 1024
+
+# The single public origin, independent of incoming Host/proxy headers.
+SITE_ORIGIN = "https://sbzpart.ir"

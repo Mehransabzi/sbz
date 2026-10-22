@@ -7,7 +7,7 @@ from django.db.models import Q, Sum, Max, Value, IntegerField
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_http_methods
 
 from django.contrib.auth import get_user_model
 from store.catalog.models import Product
@@ -17,9 +17,9 @@ from store.integrations.chortke.services import sync_catalog
 from store.orders.models import Order, OrderItem
 from store.ai.models import ChatConversation, CustomerImageUsage
 from store.ai.usage import usage_day
-from .forms import SiteConfigurationForm, CustomerDebtForm
+from .forms import AnnouncementForm, SiteConfigurationForm, CustomerDebtForm
 from django.utils import timezone
-from .models import SiteConfiguration
+from .models import Announcement, SiteConfiguration
 
 Customer = get_user_model()
 
@@ -28,6 +28,29 @@ staff_required = user_passes_test(lambda user: user.is_authenticated and user.is
 
 def page(request, rows):
     return Paginator(rows, 25).get_page(request.GET.get("page"))
+
+
+@staff_required
+@require_http_methods(["GET", "HEAD", "POST"])
+def announcements(request, announcement_id=None):
+    announcement = get_object_or_404(Announcement, pk=announcement_id) if announcement_id else None
+    form = AnnouncementForm(request.POST if request.method == "POST" else None, instance=announcement)
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "اطلاعیه ذخیره شد.")
+        return redirect("controlpanel:announcements")
+    return render(request, "controlpanel/announcements.html", {
+        "form": form, "editing": announcement,
+        "page_obj": page(request, Announcement.objects.all()),
+    })
+
+
+@staff_required
+@require_POST
+def delete_announcement(request, announcement_id):
+    get_object_or_404(Announcement, pk=announcement_id).delete()
+    messages.success(request, "اطلاعیه حذف شد.")
+    return redirect("controlpanel:announcements")
 
 
 @staff_required

@@ -79,3 +79,19 @@ class SiteConfiguration(models.Model):
 class DailyStorySelection(models.Model):
     day = models.DateField(unique=True)
     product_ids = models.JSONField(default=list)
+
+
+class Announcement(models.Model):
+    title = models.CharField("عنوان", max_length=160)
+    body = models.TextField("متن اطلاعیه", max_length=3000)
+    is_active = models.BooleanField("نمایش در سایت", default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-created_at", "-pk")
+        verbose_name = "اطلاعیه"
+        verbose_name_plural = "اطلاعیه‌ها"
+
+    def __str__(self):
+        return self.title

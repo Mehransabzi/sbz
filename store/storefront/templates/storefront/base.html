@@ -4,16 +4,24 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080f18">
+  <link rel="manifest" href="{% static 'storefront/manifest.webmanifest' %}">
+  <link rel="canonical" href="{{ canonical_url }}">
   <meta name="description" content="پخش عمده قطعات خودرو سبزی در شوشتر؛ مشاهده کاتالوگ و ثبت سفارش برای مشتریان همکار.">
   <link rel="preload" href="{% static 'storefront/fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="{% static 'storefront/css/site.css' %}">
-  <link rel="stylesheet" href="{% static 'storefront/css/theme.css' %}?v=20260926-ai1">
+  <link rel="stylesheet" href="{% static 'storefront/css/theme.css' %}?v=20261022-light1">
+  <script>try{document.documentElement.dataset.theme=localStorage.getItem('sabzi-theme')==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}</script>
   <link rel="stylesheet" href="{% static 'storefront/css/navigation.css' %}?v=20261015-sbz-browser2">
   <link rel="stylesheet" href="{% static 'ai/chat.css' %}?v=20261013-quota1">
   <link rel="stylesheet" href="{% static 'storefront/css/customer.css' %}?v=20261015-support1">
   <title>{% block title %}پخش عمده لوازم یدکی سبزی | شوشتر{% endblock %}</title>
   {% block head %}{% endblock %}
-<link rel="stylesheet" href="{% static 'support/support.css' %}?v=20261015-support1">{% include 'includes/favicon.html' %}</head>
+<link rel="stylesheet" href="{% static 'support/support.css' %}?v=20261015-support1">
+  <link rel="stylesheet" href="{% static 'storefront/css/light.css' %}?v=20261022-2">
+  <link rel="stylesheet" href="{% static 'storefront/css/announcements.css' %}?v=20261022">
+  {% include 'includes/favicon.html' %}
+</head>
 <body data-cart-products-url="{% url 'cart-products' %}">
   <header class="site-header">
     <div class="header-inner wrap">
@@ -31,6 +39,8 @@
         {% if can_view_prices %}<a class="nav-item nav-cart-item" href="{% url 'storefront:checkout' %}"><span class="nav-glyph" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h2l3 13h11l3-9H6"/><circle cx="9" cy="21" r="1"/><circle cx="19" cy="21" r="1"/></svg></span><span>سبد <b class="cart-count">۰</b></span></a>{% endif %}
       </nav>
       <div class="header-actions">
+        <button class="button button-quiet theme-toggle" type="button" data-theme-toggle aria-label="تغییر به حالت روشن"><span aria-hidden="true">☀</span><span>حالت روشن</span></button>
+        <button class="button button-quiet install-app" type="button" data-install-app hidden>نصب برنامه</button>
         {% if user.is_staff %}<a class="button button-quiet" href="{% url 'controlpanel:dashboard' %}">پنل مدیریت</a>{% endif %}
         {% if user.is_authenticated %}
           <a class="profile-pill" href="{% url 'accounts:profile' %}" aria-label="رفتن به پروفایل {{ user.get_full_name|default:user.username }}"><span class="profile-pill-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg></span><span>{{ user.get_full_name|default:user.username }}</span><small>پروفایل من</small></a>
@@ -46,6 +56,7 @@
   <div data-mobile-navigation></div>
   <main id="main-content">
     {% if messages %}<div class="wrap site-messages">{% for message in messages %}<p class="message {{ message.tags }}">{{ message }}</p>{% endfor %}</div>{% endif %}
+    {% include 'storefront/includes/announcements.html' %}
     {% block content %}{% endblock %}
   </main>
 
@@ -69,6 +80,7 @@
   <a class="support-fab" href="{% url 'support:customer' %}" aria-label="گفتگو با پشتیبانی فروشگاه"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12a8 8 0 0 1 16 0v7h-4v-7h4M4 12v7h4v-7H4m16 7c0 3-4 3-8 3"/></svg><span>پشتیبانی</span></a>
   <div class="toast-region" aria-live="polite" aria-atomic="true"></div>
   <script src="{% static 'storefront/js/site.js' %}?v=20261015-support1" defer></script>
+  <script src="{% static 'storefront/js/pwa.js' %}?v=20261022-2" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>
