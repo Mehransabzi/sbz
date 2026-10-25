@@ -8,6 +8,7 @@ from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST, require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 
 from django.contrib.auth import get_user_model
 from store.catalog.models import Product
@@ -351,3 +352,47 @@ def product_image(request, product_id):
         messages.success(request, "عکس با فرمت WebP ذخیره شد. در صورت نبود عکس چرتکه، عکس شما نمایش داده می‌شود.")
         return redirect("controlpanel:product-image", product_id=product.pk)
     return render(request, "controlpanel/product_image.html", {"product": product, "form": form})
+
+
+@require_POST
+@csrf_exempt
+def product_image_api(request, product_id):
+    """Token-only multipart API for automated product image uploads."""
+    import secrets
+    from django.conf import settings
+    from django.http import JsonResponse
+
+    configured_token = settings.SBZ_IMAGE_UPLOAD_TOKEN
+    authorization = request.headers.get("Authorization", "")
+    supplied_token = authorization[7:].strip() if authorization.startswith("Bearer ") else ""
+    if not configured_token or not secrets.compare_digest(supplied_token, configured_token):
+        return JsonResponse({"ok": False, "error": "توکن دسترسی نامعتبر است.", "message": "توکن دسترسی نامعتبر است."}, status=403)
+
+    product = Product.objects.filter(pk=product_id).first()
+    if product is None:
+        return JsonResponse({"ok": False, "error": "کالا پیدا نشد.", "message": "کالا پیدا نشد."}, status=404)
+
+    from django.core.cache import cache
+    from django.db import transaction
+    from .forms import ProductImageForm
+
+    if "image" not in request.FILES:
+        error = "فایل عکس در فیلد image ارسال نشده است."
+        return JsonResponse({"ok": False, "error": error, "message": error}, status=400)
+    form = ProductImageForm(files=request.FILES)
+    if not form.is_valid():
+        error = next(iter(form.errors.get("image", [])), "فایل عکس نامعتبر است.")
+        return JsonResponse({"ok": False, "error": str(error), "message": str(error)}, status=400)
+
+    with transaction.atomic():
+        product = Product.objects.select_for_update().get(pk=product_id)
+        old_name = product.custom_image.name
+        storage = product.custom_image.storage
+        product.custom_image = form.cleaned_data["image"]
+        product.save(update_fields=["custom_image"])
+        image_url = product.custom_image.url
+        if old_name and old_name != product.custom_image.name and old_name.startswith("product-images/custom/"):
+            transaction.on_commit(lambda name=old_name: storage.delete(name))
+        transaction.on_commit(cache.clear)
+
+    return JsonResponse({"ok": True, "product_id": product.pk, "image_url": image_url}, status=200)

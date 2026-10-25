@@ -8,6 +8,7 @@ urlpatterns = [
     path("announcements/<int:announcement_id>/edit/", views.announcements, name="announcement-edit"),
     path("announcements/<int:announcement_id>/delete/", views.delete_announcement, name="announcement-delete"),
     path("products/<int:product_id>/image/", views.product_image, name="product-image"),
+    path("api/products/<int:product_id>/image/", views.product_image_api, name="product-image-api"),
     path('support/',support_views.inbox,name='support-inbox'),
     path("stories/", views.daily_stories, name="daily-stories"),
     path("sync/report/", views.sync_report, name="sync-report"),

@@ -102,6 +102,7 @@ CHORTKE_API_BASE_URL = os.getenv("CHORTKE_API_BASE_URL", "https://api.chortke.ap
 CHORTKE_ACCESS_TOKEN = os.getenv("CHORTKE_ACCESS_TOKEN", "")
 CHORTKE_PRICE_DIVISOR = float(os.getenv("CHORTKE_PRICE_DIVISOR", "1"))
 CHORTKE_PAGE_SIZE = max(1, min(int(os.getenv("CHORTKE_PAGE_SIZE", "100")), 500))
+SBZ_IMAGE_UPLOAD_TOKEN = os.getenv("SBZ_IMAGE_UPLOAD_TOKEN", "").strip()
 
 GAPGPT_API_BASE_URL = "https://api.gapgpt.app/v1"
 GAPGPT_PROXY_URL = os.getenv("GAPGPT_PROXY_URL", "").strip()
