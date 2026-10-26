@@ -17,6 +17,7 @@ urlpatterns = [
     path("ai/customer-chats/delete-all/", views.delete_all_customer_chats, name="ai-customer-chats-delete-all"),
     path("ai/image-usage/", views.image_usage_report, name="image-usage"),
     path("ai/", views.ai_analysis, name="ai-analysis"),
+    path("ai/cache/clear/", views.clear_ai_cache, name="ai-cache-clear"),
     path("ai/customer-chats/", views.customer_ai_chats, name="ai-customer-chats"),
     path("ai/customer-chats/<int:conversation_id>/delete/", views.delete_customer_ai_chat, name="ai-customer-chat-delete"),
     path("customers/<int:profile_id>/debt/", views.customer_debt, name="customer-debt"),

@@ -16,17 +16,27 @@
     polling=true;
     while(polling){
       try{
-        const response=await fetch(url,{cache:'no-store'});if(!response.ok)throw new Error();const data=await response.json();
+        const response=await fetch(url,{cache:'no-cache'});if(!response.ok)throw new Error();const data=await response.json();
         stage.textContent=data.stage||'در حال همگام‌سازی';progress.value=data.progress;document.querySelector('[data-sync-percent]').textContent=digits.format(data.progress)+'٪';
         message.textContent=data.message||'این کار در پس‌زمینه ادامه دارد.';
-        if(data.status!=='running'){polling=false;stage.textContent=data.status==='failed'?'همگام‌سازی انجام نشد':'همگام‌سازی تکمیل شد';document.querySelectorAll('[data-sync-form] button').forEach(b=>b.disabled=false);break;}
+        if(data.status!=='running'){
+          polling=false;
+          stage.textContent=data.status==='failed'?'همگام‌سازی انجام نشد':'همگام‌سازی تکمیل شد';
+          if(!data.message){
+            message.textContent=digits.format(data.saved_count)+' کالای یکتا ذخیره شد.';
+            if(data.catalog_summary?.public!==undefined) message.textContent+=' '+digits.format(data.catalog_summary.public)+' کالا در کاتالوگ قابل نمایش است.';
+            if(data.image_fallbacks?.length) message.textContent+=' برای '+digits.format(data.image_fallbacks.length)+' کالا تصویر جایگزین استفاده شد؛ جزئیات در گزارش ثبت شده است.';
+          }
+          document.querySelector('[data-sync-close]').textContent='بستن';
+          document.querySelectorAll('[data-sync-form] button').forEach(b=>b.disabled=false);break;
+        }
       }catch{message.textContent='دریافت وضعیت فعلاً ممکن نیست؛ گزارش همگام‌سازی را بررسی کنید.';}
       await new Promise(resolve=>setTimeout(resolve,1800));
     }
   }
   document.querySelectorAll('[data-sync-form]').forEach(form=>form.addEventListener('submit',async event=>{
     event.preventDefault();if(polling){if(!dialog.open)dialog.showModal();return;}
-    dialog.showModal();progress.value=0;stage.textContent='در حال شروع…';message.textContent='';form.querySelector('button').disabled=true;
+    dialog.showModal();progress.value=0;stage.textContent='در حال شروع…';message.textContent='';document.querySelector('[data-sync-close]').textContent='بستن؛ ادامه در پس‌زمینه';form.querySelector('button').disabled=true;
     try{const response=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{Accept:'application/json'}});const data=await response.json();if(!response.ok)throw new Error(data.error);poll(data.status_url);}catch(error){message.textContent=error.message||'شروع همگام‌سازی انجام نشد.';form.querySelector('button').disabled=false;}
   }));
   const running=document.querySelector('[data-running-sync]');if(running){dialog.showModal();poll(running.dataset.runningSync);}

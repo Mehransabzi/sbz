@@ -212,7 +212,7 @@ def sync_status(request, run_id):
     run = get_object_or_404(SyncRun, pk=run_id)
     response = JsonResponse({"id": run.pk, "status": run.status, "progress": run.progress, "stage": run.stage, "message": run.message, "image_errors": run.image_errors, "saved_count": run.saved_count,
                              "image_fallbacks": run.image_fallbacks, "catalog_summary": run.catalog_summary, "search_index": run.search_index})
-    response["Cache-Control"] = "no-store"
+    response["Cache-Control"] = "private, no-cache"
     return response
 
 
@@ -236,9 +236,11 @@ def site_settings(request):
 @staff_required
 @require_POST
 def toggle_product_visibility(request, product_id):
+    from store.storefront.cache import bump_catalog_cache_version
     product = get_object_or_404(Product, pk=product_id)
     product.is_visible = not product.is_visible
     product.save(update_fields=["is_visible"])
+    bump_catalog_cache_version()
     state = "نمایش داده می‌شود" if product.is_visible else "از سایت پنهان شد"
     messages.success(request, f"{product.name} اکنون {state}.")
     return redirect(request.POST.get("next") or "controlpanel:products")
@@ -261,6 +263,15 @@ def customer_debt(request, profile_id):
 def ai_analysis(request):
     conversations = ChatConversation.objects.filter(messages__isnull=False).select_related("user").distinct().order_by("-updated_at")[:100]
     return render(request, "controlpanel/ai_analysis.html", {"site_config": SiteConfiguration.current(), "conversations": conversations, "conversation_context": request.GET.get("conversation", "")})
+
+
+@staff_required
+@require_POST
+def clear_ai_cache(request):
+    from store.ai.cache import clear_ai_response_caches
+    clear_ai_response_caches()
+    messages.success(request, "کش پاسخ‌های هوش مصنوعی پاک شد؛ اطلاعات سایت و گفتگوها دست‌نخورده ماندند.")
+    return redirect("controlpanel:ai-analysis")
 
 
 @staff_required
@@ -291,8 +302,8 @@ def delete_all_customer_chats(request):
     if request.POST.get("confirmation") == "DELETE":
         count = ChatConversation.objects.count()
         ChatConversation.objects.all().delete()
-        from django.core.cache import cache
-        cache.clear()
+        from store.ai.cache import clear_ai_response_caches
+        clear_ai_response_caches()
         messages.success(request, f"{count} گفتگو و پیام‌هایشان حذف شدند. آمار مصرف تصاویر حفظ شد.")
     return redirect("controlpanel:ai-customer-chats")
 
@@ -317,8 +328,8 @@ def product_description(request, product_id):
             product.description_override = text
             product.description_sources = request.session.get("product-description-sources:"+str(product.pk), product.description_sources)
             product.save(update_fields=["description_override", "description_sources", "synced_at"])
-            from django.core.cache import cache
-            cache.clear()
+            from store.storefront.cache import bump_catalog_cache_version
+            bump_catalog_cache_version()
             messages.success(request, "توضیحات ذخیره شد.")
             return redirect("controlpanel:products")
     return render(request, "controlpanel/product_description.html", {"product": product})
@@ -333,9 +344,9 @@ def daily_stories(request):
 
 @staff_required
 def product_image(request, product_id):
-    from django.core.cache import cache
     from django.db import transaction
     from .forms import ProductImageForm
+    from store.storefront.cache import bump_catalog_cache_version
 
     product = get_object_or_404(Product, pk=product_id)
     form = ProductImageForm(request.POST or None, request.FILES or None)
@@ -348,7 +359,7 @@ def product_image(request, product_id):
             product.save(update_fields=["custom_image"])
             if old_name and old_name != product.custom_image.name and old_name.startswith("product-images/custom/"):
                 transaction.on_commit(lambda name=old_name: storage.delete(name))
-            transaction.on_commit(cache.clear)
+            transaction.on_commit(bump_catalog_cache_version)
         messages.success(request, "عکس با فرمت WebP ذخیره شد. در صورت نبود عکس چرتکه، عکس شما نمایش داده می‌شود.")
         return redirect("controlpanel:product-image", product_id=product.pk)
     return render(request, "controlpanel/product_image.html", {"product": product, "form": form})
@@ -372,9 +383,9 @@ def product_image_api(request, product_id):
     if product is None:
         return JsonResponse({"ok": False, "error": "کالا پیدا نشد.", "message": "کالا پیدا نشد."}, status=404)
 
-    from django.core.cache import cache
     from django.db import transaction
     from .forms import ProductImageForm
+    from store.storefront.cache import bump_catalog_cache_version
 
     if "image" not in request.FILES:
         error = "فایل عکس در فیلد image ارسال نشده است."
@@ -393,6 +404,6 @@ def product_image_api(request, product_id):
         image_url = product.custom_image.url
         if old_name and old_name != product.custom_image.name and old_name.startswith("product-images/custom/"):
             transaction.on_commit(lambda name=old_name: storage.delete(name))
-        transaction.on_commit(cache.clear)
+        transaction.on_commit(bump_catalog_cache_version)
 
     return JsonResponse({"ok": True, "product_id": product.pk, "image_url": image_url}, status=200)

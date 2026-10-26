@@ -38,10 +38,17 @@ def _messages(data):
 
 def _rate_limit(user):
     key = f"gapgpt-rate:{user.pk}"
-    count = cache.get(key, 0)
+    try:
+        count = cache.get(key, 0)
+    except Exception:
+        logger.warning("AI rate-limit cache unavailable; allowing this request.")
+        return True
     if count >= 30:
         return False
-    cache.set(key, count + 1, 60)
+    try:
+        cache.set(key, count + 1, 60)
+    except Exception:
+        logger.warning("AI rate-limit cache unavailable; allowing this request.")
     return True
 
 

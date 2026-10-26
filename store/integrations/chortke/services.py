@@ -1,8 +1,6 @@
 from decimal import Decimal, InvalidOperation
 from urllib.parse import urljoin
 
-from django.core.cache import cache
-
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -11,6 +9,8 @@ from store.catalog.models import Product
 from store.catalog.images import catalog_sync_lock, prepare_images, prune_images, remove_managed, image_root, preserve_previous_image
 from store.catalog.inventory import catalog_counts
 from store.catalog.search.indexing import rebuild_index, index_status, index_error
+from store.storefront.cache import bump_catalog_cache_version
+from store.ai.cache import invalidate_catalog_answers
 
 from .client import ChortkeClient
 from .models import SyncRun
@@ -175,7 +175,13 @@ def sync_catalog(client=None, *, run=None):
             except Exception as exc:
                 run.search_index = {**index_status(), "status": "failed", "error": index_error(exc), "source": "sync"}
                 warnings.append("بردارسازی تکمیل نشد؛ جست‌وجوی املایی فعال است. دستور rebuild_product_search را دوباره اجرا کنید.")
-            cache.clear()
+            bump_catalog_cache_version()
+            invalidate_catalog_answers()
+            from django.core.cache import cache
+            try:
+                cache.delete("gapgpt-admin-site-summary-v2")
+            except Exception:
+                pass
             if skipped:
                 warnings.append(f"{skipped} کالا به‌دلیل نداشتن شناسه یکتا رد شد.")
             run.received_count = len(products)

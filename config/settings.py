@@ -106,7 +106,15 @@ SBZ_IMAGE_UPLOAD_TOKEN = os.getenv("SBZ_IMAGE_UPLOAD_TOKEN", "").strip()
 
 GAPGPT_API_BASE_URL = "https://api.gapgpt.app/v1"
 GAPGPT_PROXY_URL = os.getenv("GAPGPT_PROXY_URL", "").strip()
-CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache", "LOCATION": "shopsite-ai-cache", "TIMEOUT": 600}}
+CACHE_LOCATION = BASE_DIR / "tmp" / "django-cache"
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": str(CACHE_LOCATION),
+        "TIMEOUT": 600,
+        "OPTIONS": {"MAX_ENTRIES": 10000},
+    }
+}
 
 
 # Product vectors are persisted locally; embeddings use the configured GapGPT key.

@@ -1,8 +1,8 @@
 {% extends 'storefront/base.html' %}
-{% load static %}
+{% load static cache %}
 {% block title %}لوازم یدکی سبزی | پخش عمده قطعات خودرو{% endblock %}
 {% block content %}
-<section class="landing-hero">
+{% cache 120 "home-landing" catalog_cache_version customer_access_tier %}<section class="landing-hero">
   <div class="wrap landing-layout">
     <div class="landing-copy" data-reveal>
       <span class="eyebrow"><span class="status-dot"></span> فروش عمده قطعات خودرو · شوشتر</span>
@@ -28,7 +28,7 @@
       <a class="sidebar-all-link" href="{% url 'storefront:catalog' %}">مشاهده همه گروه‌ها <span aria-hidden="true">←</span></a>
     </aside>
   </div>
-</section>
+</section>{% endcache %}
 
 <section class="wrap intro-section" data-reveal>
   <div class="intro-copy"><span class="eyebrow">آشنایی با فروشگاه</span><h2>همراه مطمئن قطعه‌فروشان</h2><p>ویدیوی معرفی فروشگاه را ببینید و برای استعلام قیمت عمده، پس از ساخت حساب و تأیید فروشگاه وارد کاتالوگ شوید.</p><a class="text-link" href="{% url 'storefront:catalog' %}">رفتن به کاتالوگ <span aria-hidden="true">←</span></a></div>

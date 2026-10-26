@@ -20,6 +20,25 @@ RewriteCond %{HTTP_HOST} !^sbzpart\\.ir$ [NC]
 RewriteRule ^ https://sbzpart.ir%{REQUEST_URI} [R=301,L,NE]
 </IfModule>
 """
+PERFORMANCE = """<IfModule mod_deflate.c>
+AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/manifest+json application/xml image/svg+xml
+</IfModule>
+<IfModule mod_setenvif.c>
+SetEnvIf Request_URI "^/static/" sbz_static
+SetEnvIf Request_URI "^/media/" sbz_media
+</IfModule>
+<IfModule mod_headers.c>
+Header set Cache-Control "public, max-age=31536000, immutable" env=sbz_static
+Header set Cache-Control "public, max-age=300, must-revalidate" env=sbz_media
+</IfModule>
+<IfModule mod_expires.c>
+ExpiresActive On
+ExpiresByType text/css "access plus 1 year"
+ExpiresByType application/javascript "access plus 1 year"
+ExpiresByType font/woff2 "access plus 1 year"
+ExpiresByType image/webp "access plus 5 minutes"
+</IfModule>
+"""
 HSTS = """<IfModule mod_headers.c>
 Header always set Strict-Transport-Security "max-age=31536000" "expr=%{HTTPS} == 'on'"
 </IfModule>
@@ -42,7 +61,7 @@ def head(url):
 
 def content(existing, hsts=False):
     remaining = re.sub(re.escape(BEGIN) + r".*?" + re.escape(END) + r"\n?", "", existing, flags=re.S)
-    return BEGIN + "\n" + REDIRECT + (HSTS if hsts else "") + END + "\n\n" + remaining.lstrip("\n")
+    return BEGIN + "\n" + REDIRECT + PERFORMANCE + (HSTS if hsts else "") + END + "\n\n" + remaining.lstrip("\n")
 
 
 def main():

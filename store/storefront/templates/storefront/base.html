@@ -9,17 +9,10 @@
   <link rel="canonical" href="{{ canonical_url }}">
   <meta name="description" content="پخش عمده قطعات خودرو سبزی در شوشتر؛ مشاهده کاتالوگ و ثبت سفارش برای مشتریان همکار.">
   <link rel="preload" href="{% static 'storefront/fonts/Vazirmatn-wght.woff2' %}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{% static 'storefront/css/site.css' %}">
-  <link rel="stylesheet" href="{% static 'storefront/css/theme.css' %}?v=20261022-light1">
+  <link rel="stylesheet" href="{% static 'storefront/css/site-bundle.min.css' %}?v=20261026-perf2">
   <script>try{document.documentElement.dataset.theme=localStorage.getItem('sabzi-theme')==='light'?'light':'dark'}catch{document.documentElement.dataset.theme='dark'}</script>
-  <link rel="stylesheet" href="{% static 'storefront/css/navigation.css' %}?v=20261015-sbz-browser2">
-  <link rel="stylesheet" href="{% static 'ai/chat.css' %}?v=20261013-quota1">
-  <link rel="stylesheet" href="{% static 'storefront/css/customer.css' %}?v=20261015-support1">
   <title>{% block title %}پخش عمده لوازم یدکی سبزی | شوشتر{% endblock %}</title>
   {% block head %}{% endblock %}
-<link rel="stylesheet" href="{% static 'support/support.css' %}?v=20261015-support1">
-  <link rel="stylesheet" href="{% static 'storefront/css/light.css' %}?v=20261022-2">
-  <link rel="stylesheet" href="{% static 'storefront/css/announcements.css' %}?v=20261022">
   {% include 'includes/favicon.html' %}
 </head>
 <body data-cart-products-url="{% url 'cart-products' %}">

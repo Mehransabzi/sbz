@@ -1,5 +1,4 @@
 import hashlib
-from django.core.cache import cache
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
@@ -51,5 +50,4 @@ def rebuild_index(*, force=False, progress=None):
         if progress:
             progress(count, len(changed))
     ProductEmbedding.objects.filter(product__is_active=False).delete()
-    cache.clear()
     return count

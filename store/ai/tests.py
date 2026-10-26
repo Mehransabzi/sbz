@@ -1,4 +1,5 @@
 import io
+from types import SimpleNamespace
 from datetime import date, timedelta
 from unittest.mock import patch
 from PIL import Image
@@ -9,6 +10,47 @@ from django.urls import reverse
 from store.accounts.models import User
 from .models import ChatConversation, CustomerImageUsage
 from .usage import image_usage, reserve_image_upload, usage_day
+
+
+class CustomerAnswerCacheTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
+    def _config(self):
+        return SimpleNamespace(ai_model="test-model", get_ai_api_key=lambda: "test-key")
+
+    def _provider_response(self):
+        response = SimpleNamespace(status_code=200)
+        response.raise_for_status = lambda: None
+        response.json = lambda: {"choices": [{"message": {"content": "پاسخ عمومی"}}]}
+        return response
+
+    def test_public_answers_share_only_within_the_approval_tier(self):
+        from .services import ask_gapgpt
+        approved_a = User.objects.create_user(username="09121111111", is_approved=True)
+        approved_b = User.objects.create_user(username="09122222222", is_approved=True)
+        guest = User.objects.create_user(username="09123333333", is_approved=False)
+        messages = [("user", "سلام")]
+        with patch("store.ai.services.find_products", return_value=[]), patch("store.ai.services.post_gapgpt", return_value=self._provider_response()) as provider:
+            _, cached_a = ask_gapgpt(config=self._config(), messages=messages, user=approved_a)
+            _, cached_b = ask_gapgpt(config=self._config(), messages=messages, user=approved_b)
+            _, cached_guest = ask_gapgpt(config=self._config(), messages=messages, user=guest)
+        self.assertFalse(cached_a)
+        self.assertTrue(cached_b)
+        self.assertFalse(cached_guest)
+        self.assertEqual(provider.call_count, 2)
+
+    def test_personal_account_answers_are_never_shared_from_cache(self):
+        from .services import ask_gapgpt
+        first = User.objects.create_user(username="09124444444", is_approved=True, debt=1000)
+        second = User.objects.create_user(username="09125555555", is_approved=True, debt=0)
+        messages = [("user", "مانده بدهی من چقدر است؟")]
+        with patch("store.ai.services.find_products", return_value=[]), patch("store.ai.services.post_gapgpt", return_value=self._provider_response()) as provider:
+            _, first_cached = ask_gapgpt(config=self._config(), messages=messages, user=first)
+            _, second_cached = ask_gapgpt(config=self._config(), messages=messages, user=second)
+        self.assertFalse(first_cached)
+        self.assertFalse(second_cached)
+        self.assertEqual(provider.call_count, 2)
 
 
 class ImageQuotaTests(TestCase):

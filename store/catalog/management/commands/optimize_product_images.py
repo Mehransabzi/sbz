@@ -1,8 +1,8 @@
 from django.core.management.base import BaseCommand
-from django.core.cache import cache
 from django.db import transaction
 from store.catalog.models import Product
 from store.catalog.images import catalog_sync_lock, prepare_images, prune_images, remove_managed, image_root, preserve_previous_image
+from store.storefront.cache import bump_catalog_cache_version
 
 
 class Command(BaseCommand):
@@ -28,5 +28,5 @@ class Command(BaseCommand):
                 remove_managed(image_root() / generation)
                 raise
             prune_images(generation)
-            cache.clear()
+            bump_catalog_cache_version()
             self.stdout.write(f"WebP images: {len(optimized)}; failed: {len(errors)}; bytes: {sum(row['image_size'] for row in optimized.values())}")

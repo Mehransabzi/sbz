@@ -27,7 +27,7 @@ class ManagementFeatureTests(TestCase):
             process.assert_called_once()
             status = self.client.get(response.json()['status_url'])
             self.assertEqual(status.json()['status'], 'running')
-            self.assertEqual(status['Cache-Control'], 'no-store')
+            self.assertEqual(status['Cache-Control'], 'private, no-cache')
 
     def test_launch_failure_is_recorded(self):
         with patch('subprocess.Popen', side_effect=OSError('unavailable')):

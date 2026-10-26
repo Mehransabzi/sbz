@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.cache import cache
 from django.urls import reverse
 from store.accounts.models import User
 from store.catalog.models import Product
@@ -7,6 +8,7 @@ from store.orders.models import Order, OrderItem
 
 class CustomerInterfaceTests(TestCase):
     def setUp(self):
+        cache.clear()
         self.user = User.objects.create_user(username="09120000000", first_name="مشتری", last_name="نمونه", phone="09120000000", address="نشانی نمونه", is_approved=True, debt=123000)
         self.product = Product.objects.create(chortke_code="C1", name="لنت نمونه", sale_price=250000, image_url="/media/product-images/g-test/sample.webp")
 
@@ -55,3 +57,17 @@ class CustomerInterfaceTests(TestCase):
         response = self.client.get(reverse("storefront:checkout"))
         self.assertContains(response, 'checkout-item-count')
         self.assertContains(response, 'cart-refresh-state')
+
+    def test_catalog_price_fragment_is_separated_by_approval(self):
+        guest_client = self.client
+        guest = guest_client.get(reverse("storefront:catalog"))
+        self.assertNotContains(guest, "۲۵۰٬۰۰۰")
+
+        guest_client.force_login(self.user)
+        approved = guest_client.get(reverse("storefront:catalog"))
+        self.assertContains(approved, "۲۵۰٬۰۰۰")
+
+        self.user.is_approved = False
+        self.user.save(update_fields=["is_approved"])
+        pending = guest_client.get(reverse("storefront:catalog"))
+        self.assertNotContains(pending, "۲۵۰٬۰۰۰")

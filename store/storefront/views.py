@@ -1,8 +1,10 @@
 import json
+import hashlib
 import secrets
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.cache import cache
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import Q
@@ -18,9 +20,18 @@ from store.controlpanel.models import SiteConfiguration
 from store.integrations.chortke.models import SyncRun
 from store.orders.forms import OrderForm
 from store.orders.models import Order, OrderItem
+from .cache import catalog_cache_version
 
 
 def _category_options():
+    version = catalog_cache_version()
+    cache_key = f"sbz:storefront:categories:v{version}"
+    try:
+        cached = cache.get(cache_key)
+    except Exception:
+        cached = None
+    if cached is not None:
+        return cached
     raw_categories = (
         Product.objects.filter(is_active=True, is_visible=True)
         .exclude(category="")
@@ -28,31 +39,59 @@ def _category_options():
         .values_list("category", flat=True)
         .distinct()
     )
-    return [(value, value.rsplit(">", 1)[-1].strip()) for value in raw_categories]
+    result = [(value, value.rsplit(">", 1)[-1].strip()) for value in raw_categories]
+    try:
+        cache.set(cache_key, result, 300)
+    except Exception:
+        pass
+    return result
+
+
+def _customer_access_tier(user):
+    if can_view_prices(user):
+        return "approved"
+    return "pending" if user.is_authenticated else "guest"
 
 
 def _catalog_context(request, *, page_size=24):
-    products = Product.objects.filter(is_active=True, is_visible=True)
     query = request.GET.get("q", "").strip()[:120]
     category = request.GET.get("category", "").strip()
     sort = request.GET.get("sort", "featured")
     if sort in {"price_asc", "price_desc"} and not can_view_prices(request.user):
         sort = "featured"
+    access_tier = _customer_access_tier(request.user)
+    version = catalog_cache_version()
+    selection = json.dumps([version, access_tier, query, category, sort, page_size], ensure_ascii=False, separators=(",", ":"))
+    selection_hash = hashlib.sha256(selection.encode("utf-8")).hexdigest()
+    cache_key = f"sbz:storefront:catalog-ids:{selection_hash}"
+    try:
+        product_ids = cache.get(cache_key)
+    except Exception:
+        product_ids = None
+    if product_ids is None:
+        products = Product.objects.filter(is_active=True, is_visible=True)
+        if category:
+            products = products.filter(category__iexact=category)
+        if query:
+            products = search_products(query, queryset=products)
+        ordering = {
+            "price_asc": ("sale_price", "name"),
+            "price_desc": ("-sale_price", "name"),
+            "name": ("name",),
+        }.get(sort, ("-synced_at", "name"))
+        if not query or sort != "featured":
+            products = products.order_by(*ordering)
+        product_ids = list(products.values_list("pk", flat=True))
+        try:
+            cache.set(cache_key, product_ids, 120)
+        except Exception:
+            pass
 
-    if category:
-        products = products.filter(category__iexact=category)
-    if query:
-        products = search_products(query, queryset=products)
-    ordering = {
-        "price_asc": ("sale_price", "name"),
-        "price_desc": ("-sale_price", "name"),
-        "name": ("name",),
-    }.get(sort, ("-synced_at", "name"))
-    if not query or sort != "featured":
-        products = products.order_by(*ordering)
-
-    paginator = Paginator(products, page_size)
+    paginator = Paginator(product_ids, page_size)
     page_obj = paginator.get_page(request.GET.get("page"))
+    page_ids = list(page_obj.object_list)
+    products_by_id = Product.objects.in_bulk(page_ids)
+    page_obj.object_list = [products_by_id[pk] for pk in page_ids if pk in products_by_id]
     last_sync = SyncRun.objects.first()
     return {
         "products": page_obj.object_list,
@@ -62,17 +101,24 @@ def _catalog_context(request, *, page_size=24):
         "sort": sort,
         "categories": _category_options(),
         "last_sync": last_sync,
+        "catalog_cache_version": version,
+        "catalog_cache_key": request.get_full_path(),
+        "customer_access_tier": access_tier,
     }
 
 
 @require_safe
 def home(request):
-    return render(request, "storefront/home.html", {"categories": _category_options(), "site_config": SiteConfiguration.objects.first()})
+    response = render(request, "storefront/home.html", {"categories": _category_options(), "site_config": SiteConfiguration.objects.first(), "catalog_cache_version": catalog_cache_version(), "customer_access_tier": _customer_access_tier(request.user)})
+    response["Cache-Control"] = "private, no-cache"
+    return response
 
 
 @require_safe
 def catalog(request):
-    return render(request, "storefront/catalog.html", _catalog_context(request))
+    response = render(request, "storefront/catalog.html", _catalog_context(request))
+    response["Cache-Control"] = "private, no-cache"
+    return response
 
 
 @require_safe

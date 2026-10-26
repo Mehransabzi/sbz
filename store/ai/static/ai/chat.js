@@ -1,5 +1,14 @@
 (() => {
   'use strict';
+
+  const script = document.currentScript;
+  if (script?.dataset.stylesheet && !document.querySelector('link[data-ai-chat-styles]')) {
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = script.dataset.stylesheet;
+    stylesheet.dataset.aiChatStyles = '';
+    document.head.append(stylesheet);
+  }
   const chatForm = document.querySelector('[data-ai-chat]');
   const uploadForm = document.querySelector('[data-image-upload]');
   if (!chatForm && !uploadForm) return;

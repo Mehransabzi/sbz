@@ -30,7 +30,7 @@
     {% endif %}
   {% else %}
     <p>ردیف‌های ثبت‌شده طبق گزارش قدیمی: {{ run.saved_count|fa_num }}؛ دریافتی: {{ run.received_count|fa_num }}</p>
-    <p class="cp-hint">این گزارش پیش از اصلاح شمارش و شناسایی کالاها ثبت شده است. ردیف‌های دارای کد مشترک ممکن بود روی یک کالا نوشته شوند؛ تعداد واقعی فعلی در بالای صفحه آمده است.</p>
+    <p class="cp-hint">این گزارش آمار تفکیکی ندارد. در نسخه‌های قدیمی، ردیف‌های دارای کد مشترک ممکن بود روی یک کالا نوشته شوند؛ تعداد واقعی فعلی در بالای صفحه آمده است.</p>
   {% endif %}
   {% if run.message %}<details {% if run.status == 'failed' %}open{% endif %}><summary>پیام ثبت‌شده هنگام اجرای این نوبت</summary><p>{{ run.message|linebreaksbr }}</p></details>{% endif %}
   {% if run.search_index %}
