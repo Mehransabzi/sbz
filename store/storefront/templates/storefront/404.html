@@ -1,0 +1,27 @@
+{% extends 'storefront/base.html' %}
+{% block title %}صفحه پیدا نشد | لوازم یدکی سبزی{% endblock %}
+{% block head %}<meta name="robots" content="noindex, follow">{% endblock %}
+{% block content %}
+<section class="wrap notfound-page" data-not-found>
+  <div class="notfound-card" data-reveal>
+    <span class="notfound-mark" aria-hidden="true">۴۰۴</span>
+    <span class="eyebrow">صفحه پیدا نشد</span>
+    <h1>این نشانی در فروشگاه موجود نیست</h1>
+    <p>ممکن است کالا حذف شده باشد، نشانی اشتباه وارد شده باشد یا لینک قدیمی تغییر کرده باشد. از مسیرهای زیر می‌توانید ادامه دهید.</p>
+    <div class="notfound-actions">
+      <a class="button button-primary button-large" href="{% url 'storefront:catalog' %}"><span aria-hidden="true">▦</span> رفتن به کاتالوگ</a>
+      <a class="button button-outline button-large" href="{% url 'storefront:home' %}">بازگشت به صفحه اصلی</a>
+    </div>
+    <form class="notfound-search" action="{% url 'storefront:catalog' %}" method="get" role="search">
+      <label class="sr-only" for="notfound-query">جست‌وجوی کالا در کاتالوگ</label>
+      <input id="notfound-query" type="search" name="q" placeholder="نام یا کد کالا را جست‌وجو کنید…" autocomplete="off">
+      <button class="button button-primary" type="submit">جست‌وجو</button>
+    </form>
+    <div class="notfound-links">
+      <a href="{% url 'storefront:home' %}#contact">تماس با فروشگاه</a>
+      <a href="{% url 'support:customer' %}">گفت‌وگو با پشتیبانی</a>
+      {% if can_view_prices %}<a href="{% url 'storefront:smart-bot' %}">ربات هوشمند فروشگاه</a>{% endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

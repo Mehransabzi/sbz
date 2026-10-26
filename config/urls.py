@@ -9,6 +9,9 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from django.views.decorators.http import require_safe
 from store.storefront import seo
+from store.storefront.views import page_not_found
+
+handler404 = page_not_found
 
 admin.site.site_header = "مدیریت فروشگاه سبزی"
 admin.site.site_title = "پنل مدیریت"

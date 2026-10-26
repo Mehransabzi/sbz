@@ -71,3 +71,17 @@ class CustomerInterfaceTests(TestCase):
         self.user.save(update_fields=["is_approved"])
         pending = guest_client.get(reverse("storefront:catalog"))
         self.assertNotContains(pending, "۲۵۰٬۰۰۰")
+
+
+class NotFoundPageTests(TestCase):
+    def test_unknown_url_returns_custom_404(self):
+        response = self.client.get("/this-page-does-not-exist/")
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response["Cache-Control"], "no-store")
+        self.assertContains(response, "این نشانی در فروشگاه موجود نیست", status_code=404)
+        self.assertContains(response, reverse("storefront:catalog"), status_code=404)
+
+    def test_missing_product_uses_the_same_page(self):
+        response = self.client.get(reverse("storefront:product-detail", args=[999999]))
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, "این نشانی در فروشگاه موجود نیست", status_code=404)

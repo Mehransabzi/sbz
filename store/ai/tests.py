@@ -52,6 +52,18 @@ class CustomerAnswerCacheTests(TestCase):
         self.assertFalse(second_cached)
         self.assertEqual(provider.call_count, 2)
 
+    def test_prompts_require_rial_and_forbid_toman_conversion(self):
+        from .services import ask_gapgpt
+        customer = User.objects.create_user(username="09126666666", is_approved=True)
+        with patch("store.ai.services.find_products", return_value=[]), patch("store.ai.services.post_gapgpt", return_value=self._provider_response()) as provider:
+            ask_gapgpt(config=self._config(), messages=[("user", "قیمت لنت ترمز چقدر است؟")], user=customer)
+            ask_gapgpt(config=self._config(), messages=[("user", "خلاصه فروش را بگو")], user=customer, admin_mode=True)
+        customer_policy = provider.call_args_list[0].kwargs["json"]["messages"][0]["content"]
+        admin_policy = provider.call_args_list[1].kwargs["json"]["messages"][0]["content"]
+        for policy in (customer_policy, admin_policy):
+            self.assertIn("ریال", policy)
+            self.assertIn("تومان", policy)
+
 
 class ImageQuotaTests(TestCase):
     def setUp(self):

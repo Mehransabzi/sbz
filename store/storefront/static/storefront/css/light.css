@@ -92,6 +92,13 @@ html[data-theme="light"] :is(.panel, .customer-space .panel, .account-card, .pro
   background: #fff;
   box-shadow: var(--light-shadow);
 }
+html[data-theme="light"] .notfound-card { color: var(--light-ink); border-color: var(--light-line); background: #fff; box-shadow: var(--light-shadow); }
+html[data-theme="light"] .notfound-mark { color: #116b45; border-color: #b4d1be; background: #eaf5ee; }
+html[data-theme="light"] .notfound-card h1 { color: #16301f; }
+html[data-theme="light"] .notfound-card > p { color: #52665b; }
+html[data-theme="light"] .notfound-search input { color: #1d3928; border-color: #7f9d8a; background: #fff; caret-color: #116b45; }
+html[data-theme="light"] .notfound-links a { color: #2c5f45; }
+html[data-theme="light"] .notfound-links a:hover { color: #116b45; }
 html[data-theme="light"] .product-card:hover { border-color: #80ae92; box-shadow: 0 12px 28px #163d291a; }
 html[data-theme="light"] :is(.product-photo, .detail-photo) { border-color: #dee8e1; background: #edf3ef; }
 html[data-theme="light"] .photo-placeholder { color: #547762; filter: none; }

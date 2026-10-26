@@ -215,3 +215,10 @@ def order_success(request, order_number):
     order = get_object_or_404(Order, order_number=order_number, user=request.user)
     # Order numbers are hard to guess and this receipt is intentionally read-only.
     return render(request, "storefront/order_success.html", {"order": order})
+
+
+def page_not_found(request, exception=None):
+    """Public 404 page: keep visitors inside the storefront instead of a dead end."""
+    response = render(request, "storefront/404.html", status=404)
+    response["Cache-Control"] = "no-store"
+    return response
